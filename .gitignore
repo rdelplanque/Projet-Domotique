@@ -1,0 +1,5 @@
+# Fichiers générés par la compilation
+back/build/
+
+# Fichiers de VSCode
+.vscode/
