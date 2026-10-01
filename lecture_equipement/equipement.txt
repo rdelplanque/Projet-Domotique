@@ -1,0 +1,271 @@
+Localisations (emplacements extérieurs et pièces) :
+Identifiant, description
+1,Extérieur - Terrasse
+2,Extérieur - Entrées terrasse
+3,Extérieur - Hall sud
+4,Extérieur - Piscine
+5,Extérieur - Entrée garages ouest
+6,Extérieur - Entrée garages nord
+7,Extérieur - Entrée véhicules garages
+8,Rez-de-chaussée - Bibliothèque
+9,Rez-de-chaussée - Chambre invités
+10,Rez-de-chaussée - Chambre invités - Salle de bain
+11,Rez-de-chaussée - Chambre invités - Dressing
+12,Rez-de-chaussée - Suite parentale
+13,Rez-de-chaussée - Suite parentale - Salle de bain
+14,Rez-de-chaussée - Suite parentale - Dressing
+15,Rez-de-chaussée - Vestibule
+16,Rez-de-chaussée - Cuisine
+17,Rez-de-chaussée - Escalier central
+18,Rez-de-chaussée - Escalier est
+19,Rez-de-chaussée - Garages nord
+20,Rez-de-chaussée - Garages ouest
+21,Rez-de-chaussée - Hall nord
+22,Rez-de-chaussée - Salle à manger
+23,Rez-de-chaussée - Salon
+24,Rez-de-chaussée - WC
+200,Rez-de-chaussée - Placard
+25,Premier étage - Placard
+26,Premier étage - WC
+27,Premier étage - Accès au grenier
+28,Premier étage - Balcon
+29,Premier étage - Bureau
+30,Premier étage - Chambre nord est
+31,Premier étage - Chambre nord est - Salle de bain
+32,Premier étage - Chambre nord ouest
+33,Premier étage - Chambre nord ouest - Dressing
+34,Premier étage - Chambre nord ouest - Salle de bain
+35,Premier étage - Chambre sud est
+36,Premier étage - Chambre sud est - Dressing
+37,Premier étage - Chambre sud est - Salle de bain
+38,Premier étage - Chambre sud ouest
+39,Premier étage - Chambre sud ouest - Dressing
+40,Premier étage - Chambre sud ouest - Salle de bain
+41,Premier étage - Escalier central
+42,Premier étage - Couloir circulaire
+43,Premier étage - Escalier est
+44,Premier étage - Hall nord
+45,Premier étage - Salle de jeux
+
+Luminaires / appliques / projecteurs / hublots / ensembles de spots :
+IP automate, entrée automate, état, description, localisation, puissance (W)
+192.168.0.100,00111110,éteint,Garages nord - Projecteur extérieur entrée véhicule nord,6,500.0
+192.168.0.100,00111111,éteint,Garages nord - Projecteur extérieur entrée véhicule sud,6,500.0
+192.168.0.100,01000000,éteint,Garages nord - Hublot entrée est,6,200.0
+192.168.0.100,01000001,éteint,Garages ouest - Projecteur extérieur entrée véhicule est,5,500.0
+192.168.0.100,01000010,éteint,Garages ouest - Projecteur extérieur entrée véhicule ouest,5,500.0
+192.168.0.100,01000011,éteint,Garages ouest - Hublot entrée ouest,5,200.0
+192.168.0.100,01000100,éteint,Terrasse - Hublot porte chambre invités,2,200.0
+192.168.0.100,01000101,éteint,Terrasse - Hublot porte cuisine,2,200.0
+192.168.0.100,01000110,éteint,Terrasse - Hublot cuisine d'été,1,200.0
+192.168.0.100,01000111,éteint,Terrasse - Ensemble de spots immergés piscine,4,200.0
+192.168.0.100,01001000,éteint,Hall sud - Hublot ouest,3,200.0
+192.168.0.100,01001001,éteint,Hall sud - Hublot est,3,200.0
+192.168.0.100,01001010,éteint,Hall sud - Projecteur extérieur ouest,3,300.0
+192.168.0.100,01001011,éteint,Hall sud - Projecteur extérieur est,3,300.0
+192.168.0.100,00000001,éteint,Cuisine - Luminaire entrée,16,100.0
+192.168.0.100,00000010,éteint,Cuisine - Luminaire îlot central,16,100.0
+192.168.0.100,00000011,éteint,Cuisine - Plan de travail est (gauche),16,100.0
+192.168.0.100,00000100,éteint,Cuisine - Plan de travail est (droit),16,100.0
+192.168.0.100,00000101,éteint,Cuisine - Plan de travail ouest (droite),16,100.0
+192.168.0.100,00000110,éteint,Cuisine - Plan de travail ouest (gauche),16,100.0
+192.168.0.100,00000111,éteint,Cuisine - Plan de travail sud,16,100.0
+192.168.0.100,00001000,éteint,Suite parentale - Luminaire central,12,100.0
+192.168.0.100,00001001,éteint,Suite parentale - Applique nord-ouest,12,100.0
+192.168.0.100,00001010,éteint,Suite parentale - Applique nord-est,12,100.0
+192.168.0.100,00001011,éteint,Suite parentale - Applique sud-ouest,12,100.0
+192.168.0.100,00001100,éteint,Suite parentale - Applique sud,12,100.0
+192.168.0.100,00001101,éteint,Suite parentale - Salle de bain et dressing - Luminaire entrée salle de bain,10,100.0
+192.168.0.100,00001110,éteint,Suite parentale - Salle de bain et dressing - Luminaire salle de bain central,10,100.0
+192.168.0.100,00001111,éteint,Suite parentale - Salle de bain et dressing - Baignoire,10,100.0
+192.168.0.100,00010000,éteint,Suite parentale - Salle de bain et dressing - Lavabo nord,10,100.0
+192.168.0.100,00010001,éteint,Suite parentale - Salle de bain et dressing - Lavabo est,10,100.0
+192.168.0.100,00010010,éteint,Suite parentale - Salle de bain et dressing - Luminaire douche,10,100.0
+192.168.0.100,00010011,éteint,Suite parentale - Salle de bain et dressing - Luminaire WC,10,100.0
+192.168.0.100,00010100,éteint,Suite parentale - Salle de bain et dressing - Luminaire nord dressing,11,100.0
+192.168.0.100,00010101,éteint,Suite parentale - Salle de bain et dressing - Luminaire sud dressing,11,100.0
+192.168.0.100,00010110,éteint,Suite parentale - Vestibule - Luminaire vestibule,15,100.0
+192.168.0.100,00010111,allumé,Salon - Luminaire salon nord,23,100.0
+192.168.0.100,00011000,allumé,Salon - Luminaire salon sud,23,100.0
+192.168.0.100,00011001,éteint,Salon - Applique nord,23,100.0
+192.168.0.100,00011010,allumé,Salon - Applique cheminée nord,23,100.0
+192.168.0.100,00011011,allumé,Salon - Applique cheminée sud,23,100.0
+192.168.0.100,00011100,éteint,Salon - Applique sud,23,100.0
+192.168.0.100,00011101,allumé,Salon - Applique grand mur nord,23,100.0
+192.168.0.100,00011110,allumé,Salon - Applique grand mur sud,23,100.0
+192.168.0.100,00011111,éteint,Salle à manger - Luminaire central,22,100.0
+192.168.0.100,00100000,éteint,Salle à manger - Applique nord ouest,22,100.0
+192.168.0.100,00100001,éteint,Salle à manger - Applique nord est,22,100.0
+192.168.0.100,00100010,éteint,Salle à manger - Applique nord mur ouest,22,100.0
+192.168.0.100,00100011,en panne,Salle à manger - Applique sud mur ouest,22,100.0
+192.168.0.100,00100100,éteint,Salle à manger - Applique sud-est,22,100.0
+192.168.0.100,00100101,éteint,Placard - Applique,200,100.0
+192.168.0.100,00100110,en panne,WC - Luminaire central,24,100.0
+192.168.0.100,00100111,allumé,Escalier central - Luminaire central,17,100.0
+192.168.0.100,00101000,allumé,Escalier central - Luminaire sud,17,100.0
+192.168.0.100,00101001,allumé,Bibliothèque - Luminaire central ouest,8,100.0
+192.168.0.100,00101010,éteint,Bibliothèque - Luminaire central est,8,100.0
+192.168.0.100,00101011,éteint,Chambre invités - Luminaire central,9,100.0
+192.168.0.100,00101100,éteint,Chambre invités - Applique ouest,9,100.0
+192.168.0.100,00101101,éteint,Chambre invités - Applique sud-ouest,9,100.0
+192.168.0.100,00101110,éteint,Chambre invités - Applique sud,9,100.0
+192.168.0.100,00101111,éteint,Chambre invités - Salle de bain et dressing - Luminaire central salle de bain,10,100.0
+192.168.0.100,00110000,éteint,Chambre invités - Salle de bain et dressing - Luminaire central dressing,11,100.0
+192.168.0.100,00110001,éteint,Chambre invités - Salle de bain et dressing - Applique sud salle de bain,10,100.0
+192.168.0.100,00110010,éteint,Chambre invités - Salle de bain et dressing - Luminaire central douche,10,100.0
+192.168.0.100,00110011,éteint,Hall nord - Luminaire central,21,100.0
+192.168.0.100,00110100,éteint,Hall nord - Applique ouest,21,100.0
+192.168.0.100,00110101,éteint,Hall nord - Applique est,21,100.0
+192.168.0.100,00110110,éteint,Garages nord - Luminaire central nord-ouest,19,100.0
+192.168.0.100,00110111,éteint,Garages nord - Luminaire central nord-est,19,100.0
+192.168.0.100,00111000,éteint,Garages nord - Luminaire central sud-ouest,19,100.0
+192.168.0.100,00111001,en panne,Garages nord - Luminaire central sud-est,19,100.0
+192.168.0.100,00111010,éteint,Garages ouest - Luminaire central nord-ouest,20,100.0
+192.168.0.100,00111011,éteint,Garages ouest - Luminaire central nord-est,20,100.0
+192.168.0.100,00111100,éteint,Garages ouest - Luminaire central sud-ouest,20,100.0
+192.168.0.100,00111101,éteint,Garages ouest - Luminaire central sud-est,20,100.0
+192.168.0.110,00000001,éteint,Bureau - Luminaire central,29,100.0
+192.168.0.110,00000010,éteint,Chambre nord est - Luminaire central,30,100.0
+192.168.0.110,00000011,allumé,Chambre nord est - Salle de bain - Luminaire central,31,100.0
+192.168.0.110,00010001,allumé,Chambre nord est - Applique nord,30,100.0
+192.168.0.110,00010010,allumé,Chambre nord est - Applique sud,30,100.0
+192.168.0.110,00010011,éteint,Chambre nord est - Salle de bain - Lavabo ouest,31,100.0
+192.168.0.110,00010100,éteint,Chambre nord est - Salle de bain - Lavabo est,31,100.0
+192.168.0.110,00010101,éteint,Chambre nord est - Salle de bain - Baignoire,31,100.0
+192.168.0.110,00000100,éteint,Escalier est - Luminaire central,43,100.0
+192.168.0.110,00010110,éteint,Escalier est - Applique ouest,43,100.0
+192.168.0.110,00010111,éteint,Escalier est - Applique est,43,100.0
+192.168.0.110,00000101,éteint,Chambre sud est - Luminaire central,35,100.0
+192.168.0.110,00000110,éteint,Chambre sud est - Dressing - Luminaire central,36,100.0
+192.168.0.110,00000111,éteint,Chambre sud est - Salle de bain - Luminaire central,37,100.0
+192.168.0.110,00011000,éteint,Chambre sud est - Applique ouest,35,100.0
+192.168.0.110,00011001,éteint,Chambre sud est - Applique est,35,100.0
+192.168.0.110,00011010,éteint,Chambre sud est - Salle de bain - Lavabo,37,100.0
+192.168.0.110,00011011,éteint,Chambre sud est - Salle de bain - Baignoire,37,100.0
+192.168.0.110,00001000,éteint,Chambre sud ouest - Luminaire central,38,100.0
+192.168.0.110,00001001,éteint,Chambre sud ouest - Dressing - Luminaire central,39,100.0
+192.168.0.110,00001010,éteint,Chambre sud ouest - Salle de bain - Luminaire central,40,100.0
+192.168.0.110,00100010,éteint,Chambre sud ouest - Applique ouest,38,100.0
+192.168.0.110,00100011,éteint,Chambre sud ouest - Applique est,38,100.0
+192.168.0.110,00100100,éteint,Chambre sud ouest - Salle de bain - Lavabo,40,100.0
+192.168.0.110,00100101,éteint,Chambre sud ouest - Salle de bain - Baignoire,40,100.0
+192.168.0.110,00001011,éteint,Salle de jeux - Luminaire central nord,45,100.0
+192.168.0.110,00001100,éteint,Salle de jeux - Luminaire central sud,45,100.0
+192.168.0.110,00011100,éteint,Salle de jeux - Applique nord ouest,45,100.0
+192.168.0.110,00011101,éteint,Salle de jeux - Applique nord est,45,100.0
+192.168.0.110,00011110,éteint,Salle de jeux - Applique ouest,45,100.0
+192.168.0.110,00011111,éteint,Salle de jeux - Applique sud ouest,45,100.0
+192.168.0.110,00100000,éteint,Salle de jeux - Applique sud est,45,100.0
+192.168.0.110,00100001,éteint,Salle de jeux - Applique est,45,100.0
+192.168.0.110,00001101,éteint,Chambre nord ouest - Luminaire central,32,100.0
+192.168.0.110,00001110,éteint,Chambre nord ouest - Dressing - Luminaire central,33,100.0
+192.168.0.110,00001111,éteint,Chambre nord ouest - Salle de bain - Luminaire central,34,100.0
+192.168.0.110,00101000,éteint,Chambre nord ouest - Applique nord,32,100.0
+192.168.0.110,00101001,éteint,Chambre nord ouest - Applique sud,32,100.0
+192.168.0.110,00101010,éteint,Chambre nord ouest - Salle de bain - Lavabo,34,100.0
+192.168.0.110,00101011,éteint,Chambre nord ouest - Salle de bain - Baignoire,34,100.0
+192.168.0.110,00100110,éteint,WC - Lavabo,26,100.0
+192.168.0.110,00010000,éteint,WC - Luminaire central,26,100.0
+192.168.0.110,00100111,éteint,Accès au grenier - Applique,27,100.0
+192.168.0.110,00101100,éteint,Couloir circulaire - Applique ouest,42,100.0
+192.168.0.110,00101101,éteint,Couloir circulaire - Applique est,42,100.0
+192.168.0.110,00101110,éteint,Couloir circulaire - Applique sud,42,100.0
+192.168.0.110,00101111,éteint,Balcon - Applique ouest,28,100.0
+192.168.0.110,00110000,éteint,Balcon - Applique est,28,100.0
+
+Prises commandées :
+IP automate, entrée automate, état, description, localisation
+192.168.0.101,00000001,allumé,Cuisine - Prise ouest porte terrasse,16
+192.168.0.101,00000010,allumé,Cuisine - Prise est porte terrasse,16
+192.168.0.101,00000011,allumé,Cuisine - Prise nord îlot central,16
+192.168.0.101,00000100,allumé,Cuisine - Prise sud îlot central,16
+
+Climatisations réversibles :
+IP automate, entrée automate, état, description, localisation, mode (0 : climatisation / 1 : chauffage)
+192.168.0.102,00000001,allumé,Suite parentale - Climatisation réversible,12,1
+192.168.0.102,00000010,allumé,Suite parentale - Salle de bain - Climatisation réversible,13,1
+192.168.0.102,00000011,en panne,Suite parentale - Dressing - Climatisation réversible,14,1
+192.168.0.102,00000100,allumé,Chambre invités - Climatisation réversible,9,1
+192.168.0.102,00000101,allumé,Chambre invités - Salle de bain - Climatisation réversible,10,1
+192.168.0.102,00000110,allumé,Chambre invités - Dressing - Climatisation réversible,11,1
+192.168.0.102,00000111,éteint,Garages nord - Climatisation réversible,19,1
+192.168.0.102,00001000,éteint,Garages ouest - Climatisation réversible,20,1
+192.168.0.102,00001001,allumé,WC - Climatisation réversible,24,1
+192.168.0.102,00001010,allumé,Salon - Climatisation réversible,23,1
+192.168.0.102,00001011,allumé,Hall nord - Climatisation réversible,21,1
+192.168.0.102,00001100,allumé,Escalier central - Climatisation réversible,17,1
+192.168.0.102,00001101,allumé,Cuisine - Climatisation réversible,16,1
+192.168.0.102,00001110,allumé,Salle à manger - Climatisation réversible,22,1
+192.168.0.102,00001111,allumé,Bibliothèque - Climatisation réversible,8,1
+192.168.0.112,00000001,allumé,Bureau - Climatisation réversible,29,1
+192.168.0.112,00000010,allumé,Chambre nord est - Climatisation réversible,30,1
+192.168.0.112,00000011,allumé,Chambre nord est - Salle de bain - Climatisation réversible,31,1
+192.168.0.112,00000100,allumé,Chambre sud est - Climatisation réversible,35,1
+192.168.0.112,00000101,allumé,Chambre sud est - Salle de bain - Climatisation réversible,37,1
+192.168.0.112,00000110,allumé,Chambre sud est - Dressing - Climatisation réversible,36,1
+192.168.0.112,00000111,allumé,Chambre sud ouest - Climatisation réversible,38,1
+192.168.0.112,00001000,allumé,Chambre sud ouest - Dressing - Climatisation réversible,39,1
+192.168.0.112,00001001,en panne,Chambre sud ouest - Salle de bain - Climatisation réversible,40,1
+192.168.0.112,00001010,allumé,Salle de jeux - Climatisation réversible,45,1
+192.168.0.112,00001011,allumé,WC - Climatisation réversible,26,1
+192.168.0.112,00001100,allumé,Chambre nord ouest - Climatisation réversible,32,1
+192.168.0.112,00001101,allumé,Chambre nord ouest - Dressing - Climatisation réversible,33,1
+192.168.0.112,00001110,allumé,Chambre nord ouest - Salle de bain - Climatisation réversible,34,1
+192.168.0.112,00001111,en panne,Couloir circulaire - Climatisation réversible,42,1
+
+Volets roulants fenêtre, portes fenêtres, baies vitrées / portes basculantes :
+IP automate, entrée automate, état, description, localisation
+192.168.0.103,00000001,allumé,Hall nord - Volet roulant grande baie vitrée,21
+192.168.0.103,00000010,allumé,Garages nord - Volet roulant fenêtre est,19
+192.168.0.103,00000011,allumé,Garages nord - Volet roulant fenêtre nord-est,19
+192.168.0.103,00000100,allumé,Garages nord - Volet roulant fenêtre nord,19
+192.168.0.103,00000101,allumé,Garages nord - Volet roulant fenêtre nord-ouest,19
+192.168.0.103,00000110,éteint,Garages nord - Porte basculante nord,19
+192.168.0.103,00000111,éteint,Garages nord - Porte basculante sud,19
+192.168.0.103,00001000,allumé,Garages ouest - Volet roulant fenêtre est,20
+192.168.0.103,00001001,éteint,Garages ouest - Porte basculante est,20
+192.168.0.103,00001010,éteint,Garages ouest - Porte basculante ouest,20
+192.168.0.103,00001011,allumé,Garages ouest - Volet roulant bow window ouest fenêtre nord,20
+192.168.0.103,00001100,allumé,Garages ouest - Volet roulant bow window ouest fenêtre ouest,20
+192.168.0.103,00001101,allumé,Garages ouest - Volet roulant bow window ouest fenêtre sud,20
+192.168.0.103,00001110,allumé,Suite parentale - Volet roulant bow window ouest fenêtre nord,12
+192.168.0.103,00001111,allumé,Suite parentale - Volet roulant bow window ouest fenêtre ouest,12
+192.168.0.103,00010000,allumé,Suite parentale - Volet roulant bow window ouest fenêtre sud,12
+192.168.0.103,00010001,allumé,Suite parentale - Volet roulant bow window sud fenêtre ouest,12
+192.168.0.103,00010010,allumé,Suite parentale - Volet roulant bow window sud fenêtre sud,12
+192.168.0.103,00010011,allumé,Suite parentale - Volet roulant bow window sud fenêtre est,12
+192.168.0.103,00010100,allumé,Suite parentale - Salle de bain - Volet roulant bow window fenêtre nord,13
+192.168.0.103,00010101,allumé,Suite parentale - Salle de bain - Volet roulant bow window fenêtre ouest,13
+192.168.0.103,00010110,allumé,Suite parentale - Salle de bain - Volet roulant bow window fenêtre sud,13
+192.168.0.103,00010111,allumé,Salon - Volet roulant fenêtre sud,23
+192.168.0.103,00011000,allumé,Salon - Volet roulant fenêtre sud-est,23
+192.168.0.103,00011001,allumé,Escalier central - Volet roulant fenêtre ouest,17
+192.168.0.103,00011010,allumé,Escalier central - Volet roulant fenêtre est,17
+192.168.0.103,00011011,allumé,Bibliothèque - Volet roulant fenêtre sud-ouest,8
+192.168.0.103,00011100,allumé,Bibliothèque - Volet roulant fenêtre sud,8
+192.168.0.103,00011101,allumé,Salle à manger - Volet roulant bow window sud fenêtre ouest,22
+192.168.0.103,00011110,allumé,Salle à manger - Volet roulant bow window sud fenêtre sud,22
+192.168.0.103,00011111,en panne,Salle à manger - Volet roulant bow window sud fenêtre est,22
+192.168.0.103,00100000,allumé,Salle à manger - Volet roulant bow window est fenêtre sud,22
+192.168.0.103,00100001,allumé,Salle à manger - Volet roulant bow window est fenêtre est,22
+192.168.0.103,00100010,allumé,Salle à manger - Volet roulant bow window est fenêtre nord,22
+192.168.0.103,00100011,allumé,Chambre invités - Volet roulant fenêtre est,9
+192.168.0.103,00100100,allumé,Chambre invités - Volet roulant fenêtre nord,9
+192.168.0.103,00100101,allumé,Chambre invités - Volet roulant porte fenêtre terrasse,9
+192.168.0.103,00100110,allumé,Chambre invités - Salle de bain - Volet roulant bow window fenêtre sud,10
+192.168.0.103,00100111,allumé,Chambre invités - Salle de bain - Volet roulant bow window fenêtre est,10
+192.168.0.103,00101000,allumé,Chambre invités - Salle de bain - Volet roulant bow window fenêtre nord,10
+192.168.0.103,00101001,allumé,Cuisine - Volet roulant porte fenêtre terrasse,16
+192.168.0.113,00000001,allumé,Bureau - Volet roulant fenêtre nord,29
+192.168.0.113,00000010,allumé,Chambre NE - Volet roulant fenêtre nord,30
+192.168.0.113,00000011,allumé,Chambre NE - Volet roulant fenêtre est,30
+192.168.0.113,00000100,allumé,Chambre SE - Volet roulant fenêtre sud,35
+192.168.0.113,00000101,allumé,Chambre SE - Volet roulant fenêtre sud-ouest,35
+192.168.0.113,00000110,allumé,Balcon - Volet roulant fenêtre est,28
+192.168.0.113,00000111,allumé,Balcon - Volet roulant fenêtre centrale,28
+192.168.0.113,00001000,allumé,Balcon - Volet roulant fenêtre ouest,28
+192.168.0.113,00001001,allumé,Chambre SO - Volet roulant fenêtre sud-est,38
+192.168.0.113,00001010,allumé,Chambre SO - Volet roulant fenêtre sud,38
+192.168.0.113,00001011,allumé,Salle de jeux - Volet roulant fenêtre ouest,45
+192.168.0.113,00001100,allumé,Chambre NO - Volet roulant fenêtre nord,32
+192.168.0.113,00001101,allumé,Hall nord - Volet roulant grande baie vitrée,44
