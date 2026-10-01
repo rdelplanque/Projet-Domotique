@@ -3,3 +3,9 @@ back/build/
 
 # Fichiers de VSCode
 .vscode/
+
+# Comptes de test avec mots de passe : jamais sur Git
+sql/peuplement_des_utilisateurs/02_utilisateurs.sql
+ 
+# Fichier de configuration du serveur (mot de passe PostgreSQL) : à venir
+back/config/config.json

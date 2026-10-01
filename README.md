@@ -38,3 +38,10 @@ printf '\xc0\xa8\x00\x64\x00\x00\x00\x01\x00\x01\x01\x01\x04' | nc -w 2 192.168.
 ssh domotique                                                    # terminal dans la VM
 code --remote ssh-remote+domotique /home/raph/projet-domotique   # ouvrir VSCode en ssh
 ```
+## GIT
+'''
+git status                          # voir ce qui a changé
+git add .                           # préparer
+git commit -m "Ce que j'ai fait"    # enregistrer en local
+git push                            # envoyer sur GitHub
+'''
