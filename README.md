@@ -12,14 +12,14 @@ make -C back clean      # supprime les fichiers compilés
 ```bash
 ./demarrer.sh <ip_simdom> <port_simdom>     # ex. ./demarrer.sh 192.168.56.1 53217
 ```
-Depuis Windows : `lancer.ps1` en parxershell (démarre la VM, détecte le port de SimDom, lance `demarrer.sh` sur la VM).
+Depuis Windows : `lancer.ps1` sous powershell (démarre la VM, détecte le port de SimDom, lance `demarrer.sh` sur la VM).
 
 ## Base de données
 # 1 automatiser les données de la BDD
 '''
 cd lecture_equipement
-gcc -Wall -Wextra -std=c11 -o lecture_equipement lecture_equipement.c
-./lecture_equipement equipement.txt
+gcc -Wall -Wextra -std=c11 -o lecture_equipement *.c
+./lecture_equipement equipement.txt 
 '''
 # 2 la bdd
 ```bash
@@ -27,13 +27,18 @@ gcc -Wall -Wextra -std=c11 -o lecture_equipement lecture_equipement.c
 psql -U domotique -d domotique              
 # exécuter le fichier de création des tables
 psql -h localhost -U domotique -d domotique -f sql/01_creation_tables.sql   
-# création des tables:
+# peuplement des tables:
 psql -h localhost -U domotique -d domotique -f sql/peuplement_de_la_bdd/01_batiment.sql
 psql -h localhost -U domotique -d domotique -f sql/peuplement_de_la_bdd/02_localisation.sql
 psql -h localhost -U domotique -d domotique -f sql/peuplement_de_la_bdd/03_piece.sql
 psql -h localhost -U domotique -d domotique -f sql/peuplement_de_la_bdd/04_type_equipement.sql
 psql -h localhost -U domotique -d domotique -f sql/peuplement_de_la_bdd/05_ip_equipement.sql
 psql -h localhost -U domotique -d domotique -f sql/peuplement_de_la_bdd/06_equipement.sql
+
+# spécifique aux utilisateurs:
+psql -h localhost -U domotique -d domotique -f sql/peuplement_des_utilisateurs/01_type_utilisateur.sql
+psql -h localhost -U domotique -d domotique -f sql/peuplement_des_utilisateurs/02_utilisateurs.sql  #n'est pas push vers git // un exemple est push vers github mais pas vers la BDD
+psql -h localhost -U domotique -d domotique -f sql/peuplement_des_utilisateurs/03_acces_piece.sql
 
 # exemple de vérification:
 # toutes les tables

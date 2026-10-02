@@ -26,7 +26,11 @@ sql/
     04_type_equipement.sql
     05_ip_equipement.sql    les 7 automates
     06_equipement.sql       lit equipements.json
-  peuplement_des_utilisateurs/   les comptes (à venir ; le fichier avec mots de passe n'est pas sur Git)
+  peuplement_des_utilisateurs/
+    01_type_utilisateur.sql       les 5 profils
+    02_utilisateurs.exemple.sql   modèle des comptes de test (faux mots de passe, sur Git)
+    02_utilisateurs.sql           copie avec les vrais mots de passe (PAS sur Git)
+    03_acces_piece.sql            pièces 9, 10, 11 pour tous les invités
 ```
 
 ## Ordre d'exécution
@@ -34,7 +38,8 @@ L'ordre compte : une table qui a une clé étrangère se remplit **après** la t
 1. `lecture_equipement` (seulement si `equipement.txt` a changé)
 2. `01_creation_tables.sql`
 3. `peuplement_de_la_bdd/01` à `06`, dans l'ordre
-4. `peuplement_des_utilisateurs/` (à venir)
+4. `peuplement_des_utilisateurs/01` à `03`, après avoir copié `02_utilisateurs.exemple.sql`
+   en `02_utilisateurs.sql` et remplacé les `A_CHANGER_...`
 
 Les commandes sont dans le README principal. Toujours lancer `psql` depuis `~/projet-domotique`
 (les scripts 03 et 06 trouvent les JSON par un chemin relatif).
@@ -49,6 +54,10 @@ Les commandes sont dans le README principal. Toujours lancer `psql` depuis `~/pr
 - **Les identifiants des pièces** sont ceux de `equipement.txt` (1 à 45, 200) ; les autres sont générés par PostgreSQL.
 - **Noms des équipements** : le programme garde la partie après le dernier « - »
   (« Salon - Luminaire salon nord » → « Luminaire salon nord », dans la pièce Salon).
+
+## Mots de passe
+- Seule l'**empreinte bcrypt** est stockée : `crypt('mdp', gen_salt('bf', 10))` (extension `pgcrypto`).
+- Vérification à la connexion : `WHERE email = ... AND password_hash = crypt('mdp_tapé', password_hash)`.
 
 ## Anomalies de `equipement.txt`
 - **Corrigée à la main** dans `lecture_equipement/equipement.txt` : luminaire central de la salle de bain de la
