@@ -74,3 +74,54 @@ git add .                           # préparer
 git commit -m "Ce que j'ai fait"    # enregistrer en local
 git push                            # envoyer sur GitHub
 '''
+
+## nginx (serveur web frontal)
+- `http://192.168.56.10/` → fichiers de `front/` (page de login)
+- `http://192.168.56.10/api/...` → serveur C sur le port 8080
+- Configuration versionnée : `nginx/domotique.conf`
+
+Installation et activation (une seule fois) :
+```bash
+sudo apt install nginx
+sudo ln -s /home/raph/projet-domotique/nginx/domotique.conf /etc/nginx/sites-enabled/domotique.conf
+sudo rm /etc/nginx/sites-enabled/default    # supprime seulement le lien du site par défaut
+chmod o+x /home/raph                         # sinon erreur 403 (www-data ne peut pas entrer)
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Après une modification de `domotique.conf` :
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Utile :
+```bash
+systemctl status nginx                     # état du service (q pour sortir)
+sudo tail -f /var/log/nginx/error.log      # erreurs (403, 502...)
+```
+
+- 403 Forbidden : droits sur `/home/raph` (voir `chmod` ci-dessus).
+- 502 Bad Gateway sur `/api` : le serveur C n'est pas lancé.
+- Raspberry Pi : adapter la ligne `root` de `domotique.conf`.
+
+
+## Accès depuis un téléphone (même Wi-Fi que le PC)
+
+La VM (192.168.56.10) n'est pas visible depuis le Wi-Fi : le PC sert de relais.
+Téléphone → `http://<IP Wi-Fi du PC>:8080` → VirtualBox → nginx (port 80 de la VM).
+
+Mise en place (une seule fois) :
+1. VirtualBox : Configuration de la VM → Réseau → Carte 1 (NAT) → Avancé → Redirection de ports
+   → TCP, IP hôte vide, port hôte `8080`, IP invité vide, port invité `80`.
+2. Pare-feu Windows (PowerShell **en administrateur**) :
+```powershell
+   New-NetFirewallRule -DisplayName "Domotique HTTP 8080" -Direction Inbound -Protocol TCP -LocalPort 8080 -Action Allow -Profile Private
+```
+
+À chaque utilisation :
+```powershell
+ipconfig                   # IPv4 de la carte Wi-Fi du PC
+Get-NetConnectionProfile   # le Wi-Fi doit être en Private
+```
+- Test sur le PC : `http://localhost:8080`
+- Wi-Fi d'école ou public (appareils isolés) : utiliser le point d'accès mobile du PC ou du téléphone.
