@@ -6,7 +6,7 @@
 
 CC      = gcc
 CFLAGS  = -Wall -Wextra -g -std=c11 -D_POSIX_C_SOURCE=200809L -MMD -MP
-LDLIBS  =
+LDLIBS  = -lcjson
 
 EXEC    = build/serveur
 

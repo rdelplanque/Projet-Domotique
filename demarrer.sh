@@ -12,6 +12,7 @@ PROJET="$(cd "$(dirname "$0")" && pwd)"
 BACK="$PROJET/back"
 FRONT="$PROJET/front"
 EXECUTABLE="$BACK/build/serveur"
+CONFIG="$BACK/config/config.json"
 
 # --- Petites fonctions d'affichage
 ok()     { echo "  [OK]    $1"; }
@@ -70,6 +71,15 @@ else
 fi
 
 # ------------------------------------------------------------
+# 4bis. Fichier de configuration (hors Git : à créer à la main)
+# ------------------------------------------------------------
+if [ -f "$CONFIG" ]; then
+    ok "Configuration trouvée : $CONFIG"
+else
+    erreur "Fichier absent : $CONFIG (cp $BACK/config/config.exemple.json $CONFIG puis le remplir)"
+fi
+
+# ------------------------------------------------------------
 # 5. Compilation du serveur C
 #    make ne recompile que les fichiers modifiés : c'est rapide.
 # ------------------------------------------------------------
@@ -88,8 +98,8 @@ fi
 # 6. Lancement du serveur
 # ------------------------------------------------------------
 if [ -x "$EXECUTABLE" ]; then
-    echo "=== Lancement de $EXECUTABLE $IP $PORT ==="
-    exec "$EXECUTABLE" "$IP" "$PORT"
+    echo "=== Lancement de $EXECUTABLE $IP $PORT $CONFIG ==="
+    exec "$EXECUTABLE" "$IP" "$PORT" "$CONFIG"
 else
     alerte "Exécutable introuvable : $EXECUTABLE (serveur non lancé)"
 fi

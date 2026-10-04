@@ -1,0 +1,14 @@
+{
+  "bdd": {
+    "hote": "localhost",
+    "port": 5432,
+    "nom": "domotique",
+    "utilisateur": "domotique",
+    "mot_de_passe": "A_REMPLACER"
+  },
+  "serveur": {
+    "port_api": 8080,
+    "intervalle_relecture_s": 5,
+    "delai_reponse_ms": 2000
+  }
+}
