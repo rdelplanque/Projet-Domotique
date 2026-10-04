@@ -1,0 +1,33 @@
+/* ==========================================================
+   login.css – réglages propres à la page de connexion
+   (chargé APRÈS index.css, donc il peut le corriger)
+   ========================================================== */
+
+/* Descendre les cartes : le contenu reste centré,
+   mais on ajoute de l'espace au-dessus.
+   vh = % de la hauteur de l'écran → s'adapte au téléphone et au PC.
+   Augmente la valeur pour descendre encore. */
+/* Les cartes partent du haut au lieu d'être centrées */
+.contenu-login {
+  justify-content: flex-start;
+  padding-top: 6vh;          /* hauteur de la carte-titre : diminue pour la remonter */
+}
+
+/* Carte du titre : plus compacte, texte centré,
+   et un grand espace en dessous pour descendre les deux autres cartes */
+.carte-titre {
+  text-align: center;
+  padding: 1rem 1.5rem;
+  margin-bottom: 35vh;       /* écart titre ↔ formulaire : augmente pour l'agrandir */
+}
+.carte-titre h1 {
+  font-size: 1.5rem;
+}
+
+/* Carte du bouton : bouton pleine largeur */
+.carte-bouton {
+  padding: 1rem 1.5rem;
+}
+.carte-bouton .bouton {
+  width: 100%;
+}

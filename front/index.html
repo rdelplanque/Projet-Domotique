@@ -1,11 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application client SimDom</title>
+  <meta charset="UTF-8">
+  <!-- Indispensable pour le téléphone : la page prend la largeur réelle de l'écran -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion R-Domotik</title>
+  <!-- Chemins absolus (commencent par /) : ils partent de front/, la racine servie par nginx -->
+  <link rel="stylesheet" href="/css/index.css">
+  <link rel="stylesheet" href="/css/login.css">
 </head>
-<body>
-    <h1>Bonjour/ au revoir</h1>
+<body class="page-login">
+
+  <!-- En-tête : logo + nom de l'entreprise (même en-tête sur toutes les pages) -->
+  <header class="entete">
+    <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
+    <span class="entete-nom">R-Domotik</span>
+  </header>
+
+    <!-- Contenu principal : deux cartes empilées -->
+  <main class="contenu contenu-login">
+
+    <!-- Carte 1 : le titre -->
+    <section class="carte carte-titre">
+      <h1>Connexion à R-Domotik</h1>
+    </section>
+
+    <!-- Carte 2 : le formulaire -->
+    <section class="carte">
+      <!-- method="post" : le mot de passe ne part jamais dans l'adresse (URL) -->
+        <form id="form-login" class="formulaire" method="post">
+            <label for="email">Adresse e-mail</label>
+            <input type="email" id="email" name="email" autocomplete="username" required>
+
+            <label for="mot_de_passe">Mot de passe</label>
+            <input type="password" id="mot_de_passe" name="mot_de_passe" autocomplete="current-password" required>
+
+            <!-- Zone d'erreur, cachée pour l'instant ; login.js la remplira (étape 5) -->
+            <p id="message-erreur" class="message-erreur" role="alert" hidden></p>
+        </form>
+    </section>
+
+    <!-- Carte 3 : le bouton de connexion -->
+    <section class="carte carte-bouton">
+      <!-- form="form-login" : le bouton est hors du <form>,
+           mais il envoie quand même ce formulaire (lien par l'id) -->
+      <button type="submit" class="bouton" form="form-login">Se connecter</button>
+    </section>
+
+  </main>
+
+  <!-- Pied de page -->
+  <footer class="pied">
+    <p>Conçu par Raphael - ESGI B2 - 2026/2027</p>
+  </footer>
+
 </body>
 </html>

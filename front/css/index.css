@@ -1,0 +1,203 @@
+/* ==========================================================
+   global.css – styles communs à toutes les pages R-Domotik
+   Écrit « mobile d'abord » : les règles de base visent le
+   téléphone, le bloc @media en bas ajuste pour les grands écrans.
+   ========================================================== */
+
+
+/* 1. VARIABLES ------------------------------------------------
+   On change une valeur ici, elle change sur tout le site.      */
+:root {
+  --couleur-principale:       #2b7de9;
+  --couleur-principale-fonce: #1f5fb4;
+  --couleur-texte:            #1d2733;               /* texte sur fond clair  */
+  --couleur-texte-clair:      #ffffff;               /* texte sur fond sombre */
+  --couleur-fond-carte:       rgba(255, 255, 255, 0.3);
+  --couleur-erreur:           #c62828;
+  --voile:                    rgba(10, 20, 35, 0.1); /* assombrit les photos de fond */
+  --rayon:                    12px;
+  --ombre:                    0 8px 24px rgba(0, 0, 0, 0.25);
+  --police:                   system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+
+/* 2. REMISE À ZÉRO --------------------------------------------
+   Chaque navigateur a ses marges par défaut : on part de 0.     */
+*, *::before, *::after {
+  box-sizing: border-box;   /* la largeur inclut padding et bordure */
+}
+body, h1, h2, h3, p {
+  margin: 0;
+}
+img {
+  max-width: 100%;          /* une image ne dépasse jamais de son bloc */
+  display: block;
+}
+[hidden] {
+  display: none !important; /* l'attribut hidden gagne toujours */
+}
+
+
+/* 3. LA PAGE --------------------------------------------------
+   Trois blocs empilés : en-tête, contenu, pied.
+   min-height = au moins la hauteur de l'écran, donc le pied
+   reste en bas même si le contenu est court.                    */
+body {
+  min-height: 100vh;
+  min-height: 100dvh;       /* hauteur réelle sur mobile (barre d'adresse) */
+  display: flex;
+  flex-direction: column;
+  font-family: var(--police);
+  font-size: 1rem;          /* 16 px */
+  line-height: 1.5;
+  color: var(--couleur-texte-clair);
+  background-color: #14202e; /* couleur de secours si l'image ne charge pas */
+  background-size: contain;    /* l'image couvre tout l'écran, sans déformation */
+   background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Image de fond selon la page : la classe est posée sur <body>.
+   Le dégradé (même couleur deux fois) = un voile sombre posé
+   par-dessus la photo pour que le texte reste lisible.          */
+.page-login {
+  background-image: linear-gradient(var(--voile), var(--voile)),
+                    url("/images/connexion.jpg");
+}
+.page-accueil {
+  background-image: linear-gradient(var(--voile), var(--voile)),
+                    url("/images/accueil.jpg");
+}
+
+
+/* 4. EN-TÊTE -------------------------------------------------- */
+.entete {
+  display: flex;
+  align-items: center;      /* logo et nom alignés verticalement */
+  gap: 0.75rem;
+  padding: 1rem;
+}
+.entete-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;      /* le logo garde ses proportions */
+  border-radius: 8px;
+}
+.entete-nom {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+
+/* 5. CONTENU --------------------------------------------------
+   flex: 1 = prend toute la place entre l'en-tête et le pied,
+   puis centre ce qu'il contient.                                */
+.contenu {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+
+/* 6. CARTE ----------------------------------------------------
+   Panneau clair réutilisable (login, pièces, équipements…).    */
+.carte {
+  width: 100%;
+  max-width: 420px;         /* pleine largeur sur téléphone, limitée sur PC */
+  padding: 1.5rem;
+  background: var(--couleur-fond-carte);
+  color: var(--couleur-texte);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  backdrop-filter: blur(6px);          /* floute ce qu'il y a derrière la carte */
+  -webkit-backdrop-filter: blur(6px);  /* même chose pour Safari (iPhone) */
+}
+
+
+/* 7. BOUTONS ET CHAMPS ---------------------------------------- */
+button,
+input {
+  font: inherit;            /* même police et taille (16 px) que la page :
+                               en dessous, l'iPhone zoome sur le champ */
+}
+.bouton {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--couleur-principale);
+  color: var(--couleur-texte-clair);
+  font-weight: 600;
+  cursor: pointer;
+}
+.bouton:hover,
+.bouton:focus-visible {
+  background: var(--couleur-principale-fonce);
+}
+
+/* 7bis. FORMULAIRES -------------------------------------------
+   Libellé au-dessus, champ en pleine largeur, empilés en colonne. */
+.formulaire {
+  display: flex;
+  flex-direction: column;   /* les éléments s'empilent au lieu de se suivre en ligne */
+  gap: 0.35rem;             /* petit espace entre libellé et champ */
+}
+.formulaire label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.formulaire input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.75rem;   /* espace plus grand avant le libellé suivant */
+  border: 1px solid #b8c2cc;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--couleur-texte);
+}
+
+/* Champ actif (curseur dedans) : bordure bleue + halo.
+   On remplace le contour par défaut, on ne le supprime pas :
+   sans repère visuel, impossible de naviguer au clavier (Tab). */
+.formulaire input:focus {
+  outline: none;
+  border-color: var(--couleur-principale);
+  box-shadow: 0 0 0 3px rgba(43, 125, 233, 0.25);
+}
+
+/* Champ mal rempli : bordure rouge, mais seulement APRÈS
+   que l'utilisateur y a touché (pas dès l'ouverture de la page) */
+.formulaire input:user-invalid {
+  border-color: var(--couleur-erreur);
+}
+
+
+/* 8. MESSAGES ------------------------------------------------- */
+.message-erreur {
+  color: var(--couleur-erreur);
+  font-weight: 600;
+}
+
+
+/* 9. PIED DE PAGE --------------------------------------------- */
+.pied {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+
+/* 10. GRANDS ÉCRANS (tablette, PC : 768 px et plus) ----------- */
+@media (min-width: 768px) {
+  .entete {
+    padding: 1.25rem 2rem;
+  }
+  .entete-logo {
+    width: 56px;
+    height: 56px;
+  }
+}
