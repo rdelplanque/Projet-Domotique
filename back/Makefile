@@ -5,8 +5,8 @@
 # ============================================================
 
 CC      = gcc
-CFLAGS  = -Wall -Wextra -g -std=c11 -D_POSIX_C_SOURCE=200809L -MMD -MP
-LDLIBS  = -lcjson
+CFLAGS  = -Wall -Wextra -g -std=c11 -D_POSIX_C_SOURCE=200809L -MMD -MP -I/usr/include/postgresql
+LDLIBS  = -lcjson -lpq
 
 EXEC    = build/serveur
 

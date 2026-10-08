@@ -7,10 +7,12 @@
 #include <stdlib.h>
 
 #include "config/config.h"
+#include "bdd/bdd.h"
 
 int main(int argc, char *argv[])
 {
-    Config cfg;
+    Config cfg;          /* la fiche des réglages, remplie par config  */
+    PGconn *conn;        /* la connexion à PostgreSQL, ouverte par bdd */
 
     /* 1. Configuration : arguments + config.json. Échec = arrêt. */
     if (config_charger(argc, argv, &cfg) != 0) {
@@ -19,9 +21,21 @@ int main(int argc, char *argv[])
     }
     config_afficher(&cfg);
 
-    /* 2. Base de données (module bdd) : à venir */
+    /* 2. Base de données : connexion + vérification. Échec = arrêt. */
+    conn = bdd_connecter(&cfg);
+    if (conn == NULL) {
+        fprintf(stderr, "Arrêt du serveur : base de données inaccessible.\n");
+        return EXIT_FAILURE;
+    }
+    if (bdd_verifier(conn) != 0) {
+        fprintf(stderr, "Arrêt du serveur : base de données incomplète.\n");
+        bdd_fermer(conn);
+        return EXIT_FAILURE;
+    }
+
     /* 3. Écoute HTTP de l'API : à venir */
     /* 4. Connexion à SimDom : à venir */
 
+    bdd_fermer(conn);    /* à la fin, on referme (comme fclose) */
     return EXIT_SUCCESS;
 }
