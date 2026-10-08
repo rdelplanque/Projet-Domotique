@@ -201,3 +201,9 @@ input {
     height: 56px;
   }
 }
+
+
+.bouton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

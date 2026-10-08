@@ -8,6 +8,7 @@
 #include <string.h>         /* strcmp */
 
 #include "route.h"
+#include "../auth/auth.h"
 
 
 /* ------------------------------------------------------------
@@ -41,7 +42,7 @@ typedef struct {
 /* Le répertoire de l'API. La ligne {NULL...} marque la fin. */
 static const Route ROUTES[] = {
     { "GET",  "/api/ping",  traiter_ping },
-    /* { "POST", "/api/login", auth_login },   ← prochaine étape */
+    { "POST", "/api/login", auth_login   },     /* dans auth/auth.c */
     { NULL, NULL, NULL }
 };
 

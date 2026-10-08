@@ -9,6 +9,7 @@
 #include "config/config.h"
 #include "bdd/bdd.h"
 #include "http/http_serveur.h"
+#include "auth/auth.h"
 
 int main(int argc, char *argv[])
 {
@@ -34,6 +35,9 @@ int main(int argc, char *argv[])
         bdd_fermer(conn);
         return EXIT_FAILURE;
     }
+
+    /* Les modules qui ont besoin de la base reçoivent la connexion */
+    auth_initialiser(conn);
 
     /* 3. Écoute HTTP de l'API. Échec = arrêt. */
     ecoute = http_ouvrir(cfg.port_api);
