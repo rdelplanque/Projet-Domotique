@@ -1,9 +1,10 @@
 /* ============================================================
    http_serveur.c – Le « guichet » HTTP du serveur R-Domotik
 
-   VERSION 1 (étape de test) : on affiche la requête brute reçue
-   et on répond toujours {"ok":true}. Le découpage de la requête
-   (http_requete.c) et l'aiguillage (route) viendront ensuite.
+   VERSION 2 : la requête est lue et découpée par http_requete.c.
+   On affiche méthode, chemin et corps, et on répond toujours
+   {"ok":true}. Réponses (http_reponse.c) et aiguillage (route)
+   viendront ensuite.
    ============================================================ */
 
 #include <stdio.h>          /* printf, fprintf, perror        */
@@ -16,15 +17,13 @@
 #include <arpa/inet.h>      /* inet_ntop                      */
 
 #include "http_serveur.h"
+#include "http_requete.h"
 
 #define PREFIXE "[http] "
 
 /* Nombre de clients qui peuvent attendre en file pendant qu'on
    en sert un (comme la file d'attente devant le guichet). */
 #define FILE_ATTENTE 16
-
-/* Taille maximale d'une requête lue (version 1) */
-#define TAILLE_TAMPON 4096
 
 /* Au-delà de 5 s sans rien recevoir, on abandonne ce client
    (sinon un client muet bloquerait tout le serveur). */
@@ -81,41 +80,62 @@ int http_ouvrir(int port)
 }
 
 
-/* Sert UN client : lire sa requête, l'afficher, répondre, fermer. */
+/* PROVISOIRE : envoie une réponse HTTP minimale (code + JSON).
+   Sera remplacé par http_reponse.c à l'étape suivante.
+   Les \r\n sont obligatoires en HTTP, et la ligne vide (\r\n\r\n)
+   sépare les en-têtes du corps. */
+static void repondre(int client, int code, const char *message, const char *json)
+{
+    char entetes[256];
+    int n;
+
+    n = snprintf(entetes, sizeof entetes,
+                 "HTTP/1.1 %d %s\r\n"
+                 "Content-Type: application/json\r\n"
+                 "Content-Length: %zu\r\n"
+                 "Connection: close\r\n"
+                 "\r\n",
+                 code, message, strlen(json));
+
+    if (send(client, entetes, (size_t)n, 0) < 0 || send(client, json, strlen(json), 0) < 0) {
+        perror(PREFIXE "send");
+    }
+}
+
+/* Sert UN client : lire et découper sa requête, répondre. */
 static void servir_client(int client)
 {
-    char tampon[TAILLE_TAMPON];
-    ssize_t lus;
+    Requete req;            /* la fiche de la requête (~16 Ko) */
+    int resultat;
     struct timeval delai = { DELAI_LECTURE_S, 0 };
-
-    /* Réponse fixe pour la version 1. Les \r\n sont obligatoires en HTTP,
-       et la ligne vide (\r\n\r\n) sépare les en-têtes du corps. */
-    const char *reponse =
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: application/json\r\n"
-        "Content-Length: 11\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-        "{\"ok\":true}";
 
     setsockopt(client, SOL_SOCKET, SO_RCVTIMEO, &delai, sizeof delai);
 
-    /* Lire ce que le client a envoyé (une seule lecture en version 1).
-       -1 pour garder une place pour le '\0' final. */
-    lus = recv(client, tampon, sizeof tampon - 1, 0);
-    if (lus <= 0) {
+    resultat = http_requete_lire(client, &req);
+
+    if (resultat == -1) {
         fprintf(stderr, PREFIXE "rien reçu (client parti ou délai dépassé)\n");
+        return;                                     /* on ferme sans répondre */
+    }
+    if (resultat == 400) {
+        repondre(client, 400, "Bad Request", "{\"erreur\":\"requete invalide\"}");
         return;
     }
-    tampon[lus] = '\0';
-
-    printf(PREFIXE "----- requête reçue (%zd octets) -----\n%s\n"
-           PREFIXE "--------------------------------------\n", lus, tampon);
-
-    /* Envoyer la réponse */
-    if (send(client, reponse, strlen(reponse), 0) < 0) {
-        perror(PREFIXE "send");
+    if (resultat == 413) {
+        repondre(client, 413, "Payload Too Large", "{\"erreur\":\"requete trop grosse\"}");
+        return;
     }
+
+    /* Requête correcte : on affiche ce qu'on a découpé.
+       %.*s : affiche au plus taille_corps caractères. */
+    printf(PREFIXE "%s %s (corps : %zu octets)\n",
+           req.methode, req.chemin, req.taille_corps);
+    if (req.corps != NULL) {
+        printf(PREFIXE "corps : %.*s\n", (int)req.taille_corps, req.corps);
+    }
+
+    /* Toujours la même réponse : l'aiguillage (route) viendra ensuite */
+    repondre(client, 200, "OK", "{\"ok\":true}");
 }
 
 
