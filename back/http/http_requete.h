@@ -13,6 +13,11 @@
    Largement assez pour un login ou un scénario LDSD. */
 #define HTTP_TAILLE_MAX 16384
 
+/* Annonce : « une struct Session existe » (définie dans auth/session.h).
+   Ça suffit pour ranger son ADRESSE dans la fiche, sans que le module http
+   ait besoin de savoir ce qu'il y a dedans. */
+struct Session;
+
 /* La fiche d'une requête découpée.
    Tout le texte reçu est gardé dans tampon ; corps POINTE dedans
    (rien n'est recopié, comme champs[] dans lecture_equipement). */
@@ -21,6 +26,8 @@ typedef struct {
     char   chemin[256];     /* "/api/login" (sans la partie ?x=...)    */
     char  *corps;           /* début du corps dans tampon, NULL si vide */
     size_t taille_corps;    /* nombre d'octets du corps                */
+    const struct Session *session;  /* qui appelle : rempli par route pour une
+                                       route PROTÉGÉE ; NULL pour une route publique */
     char   tampon[HTTP_TAILLE_MAX + 1];   /* +1 pour un '\0' final   */
 } Requete;
 

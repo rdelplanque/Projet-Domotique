@@ -131,7 +131,7 @@ void http_boucle(int ecoute)
               tant que personne ne se connecte : c'est ce qui le garde allumé.
               accept renvoie une NOUVELLE prise, réservée à ce client. */
         taille = sizeof adresse_client;
-        client = accept(ecoute, (struct sockaddr *)&adresse_client, &taille);
+        client = accept(ecoute, (struct sockaddr *)&adresse_client, &taille); 
         if (client < 0) {
             perror(PREFIXE "accept");
             continue;                           /* on attend le suivant */

@@ -83,6 +83,7 @@ int http_requete_lire(int client, Requete *req)
     req->tampon[0] = '\0';
     req->corps = NULL;
     req->taille_corps = 0;
+    req->session = NULL;            /* personne d'identifié pour l'instant */
 
     /* 1. Recevoir jusqu'à la ligne vide (\r\n\r\n).
           Les données peuvent arriver en plusieurs morceaux : on boucle. */

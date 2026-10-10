@@ -52,7 +52,7 @@ else
 fi
 
 # ------------------------------------------------------------
-# 3. nginx (pas encore configuré : simple alerte s'il manque)
+# 3. nginx
 # ------------------------------------------------------------
 if systemctl is-active --quiet nginx; then
     ok "nginx est démarré (site servi depuis $FRONT)"

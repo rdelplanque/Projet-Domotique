@@ -3,11 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/css/index.css">
     <title>Accueil</title>
 
+    <!--dans le js, ajouter la gestion de la visu des cartes/btn-->
     <script src="/js/Accueil.js" defer></script>
+
 </head>
-<body>
-    <h1>Bienvenue "nom du client"</h1>
+
+
+<body class="page-accueil"><!--dans le css : index.css-->
+    <header class="entete"><!--dans le css : index.css-->
+        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
+        <span class="entete-nom">Bienvenue "nom du client"</span>
+        <a>deconnexion</a>
+    </header>
+    
+    <!--Les cartes doivent etre cliquables-->
+    <!--changer les logos pour s'adapter aux besoins-->
+    <!--TODO ici ajouter un container pour regrouper les "cartes" utilisables uniquement par l'admin (ou presque) les cartes doivent etre horizontales-->
+    <section class="carte">
+        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo"> 
+        <span class="">gestion des utilisateurs</span>
+
+    </section>
+    <section class="carte">
+        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
+        <span class="">gestion des scénarii</span>
+
+    </section>
+    <section class="carte">
+        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
+        <span class="">statistique</span>
+
+    </section>
+
+    <!--TODO ici ajouter un container pour regrouper les "cartes" utilisables par tout le monde (ou presque) les cartes doivent etre horizontales-->
+    <section class="carte">
+        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
+        <span class="">gestion des équipements</span>
+
+    </section>
+    <section class="carte"> <!---->
+        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
+        <span class="">consultation de l'état des équipements</span>
+
+    </section>
+    <section class="carte"> <!--Une modale?? ou une page??  // besoin d'une recherche? besoin de lien? 
+                                si une page, on peut faire des modales pour chaque "mode" ou btn...-->
+        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
+        <span class="">Manuel utilisateur</span>
+
+    </section>
+
+
 </body>
 </html>

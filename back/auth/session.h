@@ -16,7 +16,9 @@
 #define SESSION_MAX          64         /* sessions ouvertes en même temps   */
 #define SESSION_DUREE_S      (8 * 3600) /* une session dure 8 heures         */
 
-typedef struct {
+/* « struct Session » a un nom (en plus du typedef) : http_requete.h peut
+   ainsi l'annoncer sans inclure ce fichier (voir le champ session de Requete). */
+typedef struct Session {
     char      jeton[SESSION_TAILLE_JETON];  /* "" = case libre       */
     long long id_utilisateur;
     char      profil[51];                   /* pour vérifier les droits */

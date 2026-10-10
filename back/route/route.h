@@ -11,9 +11,12 @@
 #include "../http/http_reponse.h"
 
 /* Traite une requête correcte et remplit la réponse :
-     route connue + bonne méthode → la fonction de cette route ;
-     route connue + autre méthode → 405 ;
-     route inconnue              → 404. */
-void route_traiter(const Requete *req, Reponse *rep);
+     route inconnue                          → 404 ;
+     route connue + autre méthode            → 405 ;
+     route PROTÉGÉE sans jeton valable       → 401 ;
+     sinon                                   → la fonction de cette route.
+   req n'est pas const : pour une route protégée, route y range la
+   session trouvée (req->session) avant d'appeler la fonction. */
+void route_traiter(Requete *req, Reponse *rep);
 
 #endif /* ROUTE_H */

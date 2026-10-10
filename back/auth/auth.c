@@ -1,11 +1,11 @@
 /* ============================================================
-   auth.c – Authentification : login
+   auth.c – Authentification : login, jeton, logout
    Le module qui DÉCIDE : il demande à bdd de vérifier les
    identifiants, puis accepte ou refuse, et crée la session.
    ============================================================ */
 
 #include <stdio.h>          /* printf */
-#include <string.h>         /* strlen */
+#include <string.h>         /* strlen, strncmp */
 #include <cjson/cJSON.h>
 
 #include "auth.h"
@@ -17,6 +17,9 @@
 /* Limites des champs (au-delà : refus avant même d'interroger la base) */
 #define EMAIL_MAX         255   /* varchar(255) dans la table          */
 #define MOT_DE_PASSE_MAX  72    /* bcrypt ignore au-delà de 72 octets  */
+
+/* Début de l'en-tête Authorization : « Bearer » = « porteur » (du bracelet) */
+#define BEARER            "Bearer "
 
 /* La connexion à la base, donnée une fois par main (auth_initialiser) */
 static PGconn *connexion = NULL;
@@ -113,4 +116,55 @@ void auth_login(const Requete *req, Reponse *rep)
     }
 
     cJSON_Delete(json);
+}
+
+/* ------------------------------------------------------------
+   Le bracelet : jeton envoyé par le navigateur à chaque requête
+   ------------------------------------------------------------ */
+
+const Session *auth_session(const Requete *req)
+{
+    /* "Bearer " (7) + 64 caractères + '\0' : 80 places suffisent,
+       un en-tête plus long est forcément faux. */
+    char valeur[80];
+    size_t longueur_bearer = strlen(BEARER);
+
+    /* 1. L'en-tête est-il là ? */
+    if (http_requete_entete(req, "Authorization", valeur, sizeof valeur) != 0) {
+        return NULL;
+    }
+    /* 2. Commence-t-il par "Bearer " ? */
+    if (strncmp(valeur, BEARER, longueur_bearer) != 0) {
+        return NULL;
+    }
+    /* 3. Le jeton (ce qui suit "Bearer ") correspond-il à une session ? */
+    return session_trouver(valeur + longueur_bearer);
+}
+
+
+/* POST /api/logout */
+void auth_logout(const Requete *req, Reponse *rep)
+{
+    /* route a déjà vérifié le jeton : req->session n'est pas NULL. */
+    printf(PREFIXE "déconnexion (utilisateur %lld)\n", req->session->id_utilisateur);
+
+    /* Après cette ligne, la case est effacée : on ne lit plus req->session. */
+    session_supprimer(req->session->jeton);
+    http_reponse_json(rep, 200, "{\"ok\":true}");
+}
+
+
+/* GET /api/moi */
+void auth_moi(const Requete *req, Reponse *rep)
+{
+    cJSON *objet = cJSON_CreateObject();
+
+    cJSON_AddBoolToObject(objet, "ok", 1);
+    cJSON_AddNumberToObject(objet, "id", (double)req->session->id_utilisateur);
+    cJSON_AddStringToObject(objet, "profil", req->session->profil);
+
+    http_reponse_liberer(rep);
+    rep->code = 200;
+    rep->json = cJSON_PrintUnformatted(objet);  /* NULL si mémoire pleine → 500 */
+    cJSON_Delete(objet);
 }

@@ -3,6 +3,7 @@
 
    Pour ajouter une route : écrire sa fonction (ici ou dans son
    module : auth, simdom...) et ajouter UNE ligne dans ROUTES[].
+   Toute nouvelle route est PROTEGEE, sauf raison précise.
    ============================================================ */
 
 #include <string.h>         /* strcmp */
@@ -33,17 +34,25 @@ static void traiter_ping(const Requete *req, Reponse *rep)
    comme un numéro de téléphone noté dans un répertoire. */
 typedef void (*Traitement)(const Requete *req, Reponse *rep);
 
+/* Qui a le droit d'entrer ?
+     PUBLIQUE : tout le monde (pas besoin de bracelet) ;
+     PROTEGEE : seulement avec un jeton valable, sinon 401. */
+typedef enum { PUBLIQUE, PROTEGEE } Acces;
+
 typedef struct {
     const char *methode;        /* "GET", "POST"...  */
     const char *chemin;         /* "/api/ping"       */
+    Acces       acces;          /* PUBLIQUE / PROTEGEE */
     Traitement  traitement;     /* fonction à appeler */
 } Route;
 
 /* Le répertoire de l'API. La ligne {NULL...} marque la fin. */
 static const Route ROUTES[] = {
-    { "GET",  "/api/ping",  traiter_ping },
-    { "POST", "/api/login", auth_login   },     /* dans auth/auth.c */
-    { NULL, NULL, NULL }
+    { "GET",  "/api/ping",   PUBLIQUE, traiter_ping },
+    { "POST", "/api/login",  PUBLIQUE, auth_login   },  /* dans auth/auth.c */
+    { "POST", "/api/logout", PROTEGEE, auth_logout  },
+    { "GET",  "/api/moi",    PROTEGEE, auth_moi     },
+    { NULL, NULL, PUBLIQUE, NULL }
 };
 
 
@@ -51,7 +60,7 @@ static const Route ROUTES[] = {
    Fonction publique
    ------------------------------------------------------------ */
 
-void route_traiter(const Requete *req, Reponse *rep)
+void route_traiter(Requete *req, Reponse *rep)
 {
     int i;
     int chemin_connu = 0;
@@ -61,10 +70,21 @@ void route_traiter(const Requete *req, Reponse *rep)
             continue;                           /* pas ce chemin : suivante */
         }
         chemin_connu = 1;
-        if (strcmp(req->methode, ROUTES[i].methode) == 0) {
-            ROUTES[i].traitement(req, rep);     /* appel de la fonction notée */
-            return;
+        if (strcmp(req->methode, ROUTES[i].methode) != 0) {
+            continue;                           /* pas cette méthode : suivante */
         }
+
+        /* Route trouvée. Protégée ? Alors on contrôle le bracelet,
+           ICI et une seule fois, pour toutes les routes protégées. */
+        if (ROUTES[i].acces == PROTEGEE) {
+            req->session = auth_session(req);
+            if (req->session == NULL) {
+                http_reponse_erreur(rep, 401, "connexion requise");
+                return;
+            }
+        }
+        ROUTES[i].traitement(req, rep);         /* appel de la fonction notée */
+        return;
     }
 
     if (chemin_connu) {
