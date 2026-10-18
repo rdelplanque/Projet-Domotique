@@ -1,0 +1,141 @@
+/* ============================================================
+   pages.css – Pages internes : en-tête, groupes de cartes
+   Chargé APRÈS index.css. Couleurs provisoires, à retoucher.
+   ============================================================ */
+
+/* hidden doit toujours gagner, même sur un élément en display:flex */
+[hidden] {
+    display: none !important;
+}
+
+/* ---------- En-tête (fabriqué par commun.js) ---------- */
+.entete {
+    box-sizing: border-box;
+    width: 100%;                /* toute la largeur, même si index.css centre le body */
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #1f2a37;
+    color: #fff;
+}
+.entete-logo {
+    height: 40px;
+    width: auto;
+    border-radius: 6px;
+}
+.entete-titre {
+    flex: 1;                    /* pousse Déconnexion tout à droite */
+    margin: 0;
+    font-size: 1.2rem;
+}
+.entete-retour {
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.entete-deconnexion {
+    padding: 6px 12px;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+}
+.entete-deconnexion:hover,
+.entete-retour:hover {
+    opacity: .8;
+}
+
+/* ---------- Fond de l'accueil ---------- */
+body[data-page="accueil"] {
+    background: url("/images/accueil.jpg") center / cover fixed;
+}
+
+/* ---------- Contenu ---------- */
+/* width: 100% : index.css centre le body en flex (page de login),
+   ce qui rétrécissait le contenu à la largeur d'une seule carte. */
+.contenu {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+}
+.groupe-titre {
+    margin: 24px 0 12px;
+    font-size: 1.1rem;
+}
+
+/* Cartes d'un groupe : côte à côte tant qu'il y a la place,
+   les unes sous les autres sur téléphone. Les groupes restent
+   empilés verticalement (ce sont des blocs normaux). */
+.cartes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+/* « .contenu .carte » et pas « .carte » seul : la page de login a
+   aussi des .carte dans index.css, on ne veut pas de leurs réglages. */
+.contenu .carte {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 24px 16px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+    color: #1f2a37;             /* texte sombre : le fond de la carte est blanc */
+    text-decoration: none;      /* toute la carte est un lien, sans soulignement */
+    transition: transform .15s;
+}
+.contenu .carte:hover {
+    transform: translateY(-3px);
+}
+.carte-icone {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;        /* l'image garde ses proportions */
+    border-radius: 8px;
+}
+.carte-nom {
+    font-weight: bold;
+    text-align: center;
+}
+
+/* ---------- Message d'erreur (serveur injoignable) ---------- */
+.message-erreur-page {
+    margin: 0;
+    padding: 12px 16px;
+    background: #fdecea;
+    color: #8a1c13;
+    text-align: center;
+}
+
+/* ---------- Pied ---------- */
+.pied {
+    padding: 16px;
+    text-align: center;
+    font-size: .85rem;
+    opacity: .7;
+}
+
+/* ---------- Téléphone ---------- */
+@media (max-width: 480px) {
+    /* « fixed » marche mal sur téléphone : le fond défile avec la page */
+    body[data-page="accueil"] {
+        background-attachment: scroll;
+    }
+    .entete-titre {
+        font-size: 1rem;
+    }
+    .entete-logo {
+        height: 32px;
+    }
+}

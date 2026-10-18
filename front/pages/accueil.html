@@ -1,62 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>R-Domotik – Accueil</title>
     <link rel="stylesheet" href="/css/index.css">
-    <title>Accueil</title>
-
-    <!--dans le js, ajouter la gestion de la visu des cartes/btn-->
-    <script src="/js/Accueil.js" defer></script>
-
+    <link rel="stylesheet" href="/css/pages.css">
+    <!-- defer : exécutés dans cet ordre, une fois la page lue -->
+    <script src="/js/session.js" defer></script>
+    <script src="/js/commun.js" defer></script>
 </head>
 
+<body class="page-accueil" data-page="accueil">
 
-<body class="page-accueil"><!--dans le css : index.css-->
-    <header class="entete"><!--dans le css : index.css-->
-        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
-        <span class="entete-nom">Bienvenue "nom du client"</span>
-        <a>deconnexion</a>
-    </header>
-    
-    <!--Les cartes doivent etre cliquables-->
-    <!--changer les logos pour s'adapter aux besoins-->
-    <!--TODO ici ajouter un container pour regrouper les "cartes" utilisables uniquement par l'admin (ou presque) les cartes doivent etre horizontales-->
-    <section class="carte">
-        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo"> 
-        <span class="">gestion des utilisateurs</span>
+    <!-- Rempli par commun.js -->
+    <header class="entete"></header>
 
-    </section>
-    <section class="carte">
-        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
-        <span class="">gestion des scénarii</span>
+    <main class="contenu">
 
-    </section>
-    <section class="carte">
-        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
-        <span class="">statistique</span>
+        <!-- Icônes : une image par carte (logo.jpg en attendant les vraies).
+             Chaque carte est cachée (hidden) ; commun.js montre celles
+             dont le data-droit est dans la liste donnée par /api/moi. -->
+        <section class="groupe">
+            <h2 class="groupe-titre">La maison</h2>
+            <div class="cartes">
+                <a class="carte" href="/pages/maison.html" data-droit="consulter" hidden>
+                    <img class="carte-icone" src="/images/logo.jpg" alt="">
+                    <span class="carte-nom">Ma maison</span>
+                </a>
+                <a class="carte" href="/pages/scenarios.html" data-droit="scenarios" hidden>
+                    <img class="carte-icone" src="/images/logo.jpg" alt="">
+                    <span class="carte-nom">Scénarios</span>
+                </a>
+                <a class="carte" href="/pages/statistiques.html" data-droit="statistiques" hidden>
+                    <img class="carte-icone" src="/images/logo.jpg" alt="">
+                    <span class="carte-nom">Statistiques</span>
+                </a>
+            </div>
+        </section>
 
-    </section>
+        <section class="groupe">
+            <h2 class="groupe-titre">Administration</h2>
+            <div class="cartes">
+                <a class="carte" href="/pages/utilisateurs.html" data-droit="utilisateurs" hidden>
+                    <img class="carte-icone" src="/images/logo.jpg" alt="">
+                    <span class="carte-nom">Utilisateurs</span>
+                </a>
+                <a class="carte" href="/pages/configuration.html" data-droit="configuration" hidden>
+                    <img class="carte-icone" src="/images/logo.jpg" alt="">
+                    <span class="carte-nom">Configuration</span>
+                </a>
+            </div>
+        </section>
 
-    <!--TODO ici ajouter un container pour regrouper les "cartes" utilisables par tout le monde (ou presque) les cartes doivent etre horizontales-->
-    <section class="carte">
-        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
-        <span class="">gestion des équipements</span>
+        <section class="groupe">
+            <h2 class="groupe-titre">Aide</h2>
+            <div class="cartes">
+                <a class="carte" href="/pages/aide.html" data-droit="aide" hidden>
+                    <img class="carte-icone" src="/images/logo.jpg" alt="">
+                    <span class="carte-nom">Manuel et à propos</span>
+                </a>
+            </div>
+        </section>
 
-    </section>
-    <section class="carte"> <!---->
-        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
-        <span class="">consultation de l'état des équipements</span>
+    </main>
 
-    </section>
-    <section class="carte"> <!--Une modale?? ou une page??  // besoin d'une recherche? besoin de lien? 
-                                si une page, on peut faire des modales pour chaque "mode" ou btn...-->
-        <img src="/images/logo.jpg" alt="Logo R-Domotik" class="entete-logo">
-        <span class="">Manuel utilisateur</span>
-
-    </section>
-
+    <footer class="pied">Conçu par Raphael - ESGI B2 - 2026/2027</footer>
 
 </body>
 </html>

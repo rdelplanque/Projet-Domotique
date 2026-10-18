@@ -43,6 +43,7 @@ img {
    min-height = au moins la hauteur de l'écran, donc le pied
    reste en bas même si le contenu est court.                    */
 body {
+  margin: 0;
   min-height: 100vh;
   min-height: 100dvh;       /* hauteur réelle sur mobile (barre d'adresse) */
   display: flex;
@@ -52,9 +53,10 @@ body {
   line-height: 1.5;
   color: var(--couleur-texte-clair);
   background-color: #14202e; /* couleur de secours si l'image ne charge pas */
-  background-size: contain;    /* l'image couvre tout l'écran, sans déformation */
+  background-size: cover;    /* l'image couvre tout l'écran, sans déformation */
    background-repeat: no-repeat;
   background-position: center;
+  background-attachment: fixed;
 }
 
 /* Image de fond selon la page : la classe est posée sur <body>.
@@ -206,4 +208,11 @@ input {
 .bouton:disabled {
   opacity: 0.6;
   cursor: wait;
+}
+
+/* 11. TÉLÉPHONE (moins de 768 px) ---------------------------- */
+@media (max-width: 767px) {
+  body {
+    background-attachment: scroll;   /* « fixed » marche mal sur mobile */
+  }
 }
