@@ -11,6 +11,7 @@
 #include "auth.h"
 #include "session.h"
 #include "../bdd/bdd_utilisateur.h"
+#include "droits.h"
 
 #define PREFIXE "[auth] "
 
@@ -154,14 +155,24 @@ void auth_logout(const Requete *req, Reponse *rep)
 }
 
 
-/* GET /api/moi */
+/* GET /api/moi : qui je suis + la liste de mes droits */
 void auth_moi(const Requete *req, Reponse *rep)
 {
     cJSON *objet = cJSON_CreateObject();
+    cJSON *droits;
+    int d;
 
     cJSON_AddBoolToObject(objet, "ok", 1);
     cJSON_AddNumberToObject(objet, "id", (double)req->session->id_utilisateur);
     cJSON_AddStringToObject(objet, "profil", req->session->profil);
+
+    /* La liste des droits de ce profil (on saute DROIT_AUCUN, inutile au navigateur) */
+    droits = cJSON_AddArrayToObject(objet, "droits");
+    for (d = DROIT_AUCUN + 1; d < DROIT_NOMBRE; d++) {
+        if (a_le_droit(req->session->profil, (Droit)d)) {
+            cJSON_AddItemToArray(droits, cJSON_CreateString(droit_nom((Droit)d)));
+        }
+    }
 
     http_reponse_liberer(rep);
     rep->code = 200;
