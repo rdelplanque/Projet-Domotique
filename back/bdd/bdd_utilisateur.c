@@ -6,6 +6,7 @@
 #include <stdlib.h>         /* strtoll           */
 #include <string.h>         /* strcmp            */
 
+#include "bdd.h"              /* bdd_connexion_ok */
 #include "bdd_utilisateur.h"
 
 #define PREFIXE "[bdd] "
@@ -23,25 +24,13 @@ static const char *SQL_IDENTIFIANTS =
     "WHERE lower(u.email) = lower($1) "
     "  AND u.password_hash = crypt($2, u.password_hash)";
 
-/* Si PostgreSQL a été redémarré, la connexion est cassée :
-   on essaie de la rétablir une fois avant d'abandonner. */
-static int connexion_ok(PGconn *conn)
-{
-    if (PQstatus(conn) == CONNECTION_OK) {
-        return 1;
-    }
-    fprintf(stderr, PREFIXE "connexion perdue, tentative de reconnexion...\n");
-    PQreset(conn);
-    return PQstatus(conn) == CONNECTION_OK;
-}
-
 int bdd_verifier_identifiants(PGconn *conn, const char *email,
                               const char *mot_de_passe, Utilisateur *u)
 {
     const char *params[2];
     PGresult *res;
 
-    if (!connexion_ok(conn)) {
+    if (!bdd_connexion_ok(conn)) {
         fprintf(stderr, PREFIXE "base de données injoignable\n");
         return -1;
     }

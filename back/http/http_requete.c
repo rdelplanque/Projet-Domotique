@@ -58,9 +58,11 @@ static int decouper_ligne1(Requete *req)
         return -1;
     }
 
-    /* "/api/maison?piece=3" → on garde "/api/maison" (paramètres pas utilisés) */
+    /* "/api/maison?piece=3" → chemin "/api/maison", parametres "piece=3" */
+    req->parametres[0] = '\0';
     point_interrogation = strchr(req->chemin, '?');
     if (point_interrogation != NULL) {
+        snprintf(req->parametres, sizeof req->parametres, "%s", point_interrogation + 1);
         *point_interrogation = '\0';
     }
     return 0;
@@ -166,6 +168,39 @@ int http_requete_entete(const Requete *req, const char *nom,
             return 0;
         }
         ligne = strstr(ligne, "\r\n");                  /* ligne suivante */
+    }
+    return -1;
+}
+
+
+int http_requete_parametre(const Requete *req, const char *nom,
+                           char *dest, size_t taille)
+{
+    size_t longueur_nom = strlen(nom);
+    const char *debut = req->parametres;
+    size_t longueur;
+
+    /* Les paramètres se suivent, séparés par & : "piece=23&relire=1" */
+    while (*debut != '\0') {
+        const char *fin = strchr(debut, '&');
+
+        longueur = (fin != NULL) ? (size_t)(fin - debut) : strlen(debut);
+        /* Ce morceau commence-t-il par "nom=" ? */
+        if (longueur > longueur_nom
+            && strncmp(debut, nom, longueur_nom) == 0
+            && debut[longueur_nom] == '=') {
+            longueur -= longueur_nom + 1;               /* longueur de la valeur */
+            if (longueur >= taille) {
+                return -1;                              /* valeur trop longue */
+            }
+            memcpy(dest, debut + longueur_nom + 1, longueur);
+            dest[longueur] = '\0';
+            return 0;
+        }
+        if (fin == NULL) {
+            break;
+        }
+        debut = fin + 1;                                /* morceau suivant */
     }
     return -1;
 }

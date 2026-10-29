@@ -18,6 +18,11 @@ PGconn *bdd_connecter(const Config *cfg);
    Renvoie 0 si tout est là, -1 sinon (les manques sont affichés). */
 int bdd_verifier(PGconn *conn);
 
+/* Avant chaque requête : la connexion marche-t-elle encore ?
+   Si PostgreSQL a été redémarré, elle est cassée : on essaie de la
+   rétablir une fois. Renvoie 1 si la connexion est utilisable, 0 sinon. */
+int bdd_connexion_ok(PGconn *conn);
+
 /* Ferme la connexion (comme fclose). Accepte NULL sans planter. */
 void bdd_fermer(PGconn *conn);
 

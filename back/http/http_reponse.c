@@ -37,8 +37,10 @@ static const char *message_du_code(int code)
         case 403: return "Forbidden";
         case 404: return "Not Found";
         case 405: return "Method Not Allowed";
+        case 409: return "Conflict";
         case 413: return "Payload Too Large";
         case 500: return "Internal Server Error";
+        case 502: return "Bad Gateway";
         case 503: return "Service Unavailable";
         default:  return "Unknown";
     }

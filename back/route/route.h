@@ -14,6 +14,7 @@
      route inconnue                          → 404 ;
      route connue + autre méthode            → 405 ;
      route PROTÉGÉE sans jeton valable       → 401 ;
+     route PROTÉGÉE, profil sans le droit    → 403 ;
      sinon                                   → la fonction de cette route.
    req n'est pas const : pour une route protégée, route y range la
    session trouvée (req->session) avant d'appeler la fonction. */

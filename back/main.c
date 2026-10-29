@@ -10,6 +10,8 @@
 #include "bdd/bdd.h"
 #include "http/http_serveur.h"
 #include "auth/auth.h"
+#include "core/maison.h"
+#include "simdom/simdom.h"
 
 int main(int argc, char *argv[])
 {
@@ -38,6 +40,7 @@ int main(int argc, char *argv[])
 
     /* Les modules qui ont besoin de la base reçoivent la connexion */
     auth_initialiser(conn);
+    maison_initialiser(conn);
 
     /* 3. Écoute HTTP de l'API. Échec = arrêt. */
     ecoute = http_ouvrir(cfg.port_api);
@@ -47,12 +50,21 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    /* 4. Connexion à SimDom : à venir (avant la boucle) */
+    /* 4. Connexion à SimDom, puis lecture de l'état réel de la maison.
+          Échec = PAS d'arrêt : le serveur garde les états de la base. */
+    simdom_initialiser(cfg.simdom_ip, cfg.simdom_port, cfg.delai_reponse_ms);
+    if (simdom_connecter() == 0) {
+        maison_synchroniser();
+    } else {
+        printf("SimDom injoignable : la page « Ma maison » montre les états de la base.\n");
+    }
 
     printf("Serveur prêt. Ctrl+C pour l'arrêter.\n");
     fflush(stdout);
-    http_boucle(ecoute);     /* ne revient jamais */
+    /* Boucle du guichet, avec une « ronde » régulière : relire la maison */
+    http_boucle(ecoute, cfg.intervalle_relecture_s, maison_ronde);  /* ne revient jamais */
 
+    simdom_fermer();         /* jamais atteint pour l'instant */
     bdd_fermer(conn);        /* jamais atteint pour l'instant (arrêt propre : plus tard) */
     return EXIT_SUCCESS;
 }

@@ -8,7 +8,10 @@
    ============================================================ */
 
 #include <stdio.h>          /* printf, fprintf, perror        */
-#include <string.h>         /* memset                         */
+#include <errno.h>          /* errno, EINTR                   */
+#include <time.h>           /* clock_gettime                  */
+#include <poll.h>           /* poll : attendre avec un délai  */
+#include <string.h>         /* memset, strcmp                 */
 #include <unistd.h>         /* close                          */
 #include <signal.h>         /* signal, SIGPIPE                */
 #include <sys/socket.h>     /* socket, bind, listen, accept   */
@@ -108,11 +111,16 @@ static void servir_client(int client)
         route_traiter(&req, &rep);
     }
 
-    /* Une ligne de journal par requête : « GET /api/ping → 200 » */
-    printf(PREFIXE "%s %s -> %d\n",
-           resultat == 0 ? req.methode : "?",
-           resultat == 0 ? req.chemin : "(requête refusée)",
-           rep.json != NULL ? rep.code : 500);
+    /* Une ligne de journal par requête : « GET /api/ping → 200 »,
+       SAUF la relecture régulière de la page Ma maison quand tout va bien
+       (une ligne par seconde et par navigateur noierait le reste). */
+    if (!(resultat == 0 && rep.json != NULL && rep.code == 200
+          && strcmp(req.chemin, "/api/maison") == 0)) {
+        printf(PREFIXE "%s %s -> %d\n",
+               resultat == 0 ? req.methode : "?",
+               resultat == 0 ? req.chemin : "(requête refusée)",
+               rep.json != NULL ? rep.code : 500);
+    }
 
     /* 3. Envoyer, puis libérer la réponse (le JSON était alloué) */
     http_reponse_envoyer(client, &rep);
@@ -120,18 +128,59 @@ static void servir_client(int client)
 }
 
 
-void http_boucle(int ecoute)
+/* Millisecondes écoulées depuis un instant de départ */
+static long ecoule_ms(const struct timespec *debut)
+{
+    struct timespec maintenant;
+
+    clock_gettime(CLOCK_MONOTONIC, &maintenant);
+    return (maintenant.tv_sec - debut->tv_sec) * 1000
+         + (maintenant.tv_nsec - debut->tv_nsec) / 1000000;
+}
+
+void http_boucle(int ecoute, int intervalle_s, TachePeriodique tache)
 {
     int client;
     struct sockaddr_in adresse_client;
     socklen_t taille;
+    struct pollfd attente;
+    struct timespec derniere_ronde;
+    long reste_ms;
+    int n;
+
+    attente.fd = ecoute;
+    attente.events = POLLIN;                    /* « un client frappe au guichet » */
+    clock_gettime(CLOCK_MONOTONIC, &derniere_ronde);
 
     for (;;) {                                  /* boucle sans fin */
-        /* 4. Attendre un client (accept). Le programme reste BLOQUÉ ici
-              tant que personne ne se connecte : c'est ce qui le garde allumé.
-              accept renvoie une NOUVELLE prise, réservée à ce client. */
+        /* 4a. L'heure de la ronde est-elle passée ? Alors on la fait
+               d'abord (même s'il y a du monde : elle n'est jamais oubliée). */
+        reste_ms = (long)intervalle_s * 1000 - ecoule_ms(&derniere_ronde);
+        if (tache != NULL && reste_ms <= 0) {
+            tache();
+            clock_gettime(CLOCK_MONOTONIC, &derniere_ronde);
+            fflush(stdout);
+            continue;
+        }
+
+        /* 4b. Attendre un client, mais PAS plus longtemps que l'heure de la
+               prochaine ronde (-1 = sans limite, s'il n'y a pas de ronde).
+               C'est poll qui attend maintenant, plus accept. */
+        n = poll(&attente, 1, tache != NULL ? (int)reste_ms : -1);
+        if (n < 0) {
+            if (errno != EINTR) {
+                perror(PREFIXE "poll");
+            }
+            continue;
+        }
+        if (n == 0) {
+            continue;                           /* personne : c'est l'heure de la ronde */
+        }
+
+        /* 4c. Un client est là : accept ne bloque plus, il le fait entrer.
+               accept renvoie une NOUVELLE prise, réservée à ce client. */
         taille = sizeof adresse_client;
-        client = accept(ecoute, (struct sockaddr *)&adresse_client, &taille); 
+        client = accept(ecoute, (struct sockaddr *)&adresse_client, &taille);
         if (client < 0) {
             perror(PREFIXE "accept");
             continue;                           /* on attend le suivant */

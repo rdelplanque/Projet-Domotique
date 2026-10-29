@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>R-Domotik – Ma maison</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/pages.css">
+    <link rel="stylesheet" href="/css/maison.css">
+    <!-- defer : exécutés dans cet ordre, une fois la page lue -->
+    <script src="/js/session.js" defer></script>
+    <script src="/js/commun.js" defer></script>
+    <script src="/js/maison.js" defer></script>
+</head>
+
+<body class="page-accueil" data-page="maison" data-titre="Ma maison" data-droit="consulter">
+
+    <!-- Rempli par commun.js -->
+    <header class="entete"></header>
+
+    <main class="contenu">
+
+        <!-- Fil d'Ariane (Maison › Étage › Pièce) + bouton Rafraîchir -->
+        <nav class="fil">
+            <div class="fil-ariane"></div>
+            <button class="fil-rafraichir" type="button">⟳ Rafraîchir</button>
+        </nav>
+
+        <!-- Message d'erreur (serveur, commande refusée...) -->
+        <p class="maison-message" hidden></p>
+
+        <!-- Rempli par maison.js : les étages, OU les pièces d'un étage,
+             OU les équipements d'une pièce -->
+        <div class="maison-vue"></div>
+
+    </main>
+
+    <footer class="pied">Conçu par Raphael - ESGI B2 - 2026/2027</footer>
+
+</body>
+</html>

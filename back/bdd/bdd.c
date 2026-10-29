@@ -1,7 +1,7 @@
 /* ============================================================
    bdd.c – Module base de données du serveur R-Domotik
-   Pour l'instant : connexion + vérification au démarrage.
-   Plus tard : requêtes du login, des équipements, de l'historique...
+   Connexion + vérification au démarrage. Les requêtes sont rangées
+   par sujet : bdd_utilisateur.c (login), bdd_maison.c (équipements)...
    ============================================================ */
 
 #include <stdio.h>          /* fprintf, snprintf */
@@ -140,6 +140,16 @@ int bdd_verifier(PGconn *conn)
 
     printf(PREFIXE "%d tables et pgcrypto présents\n", i);
     return 0;
+}
+
+int bdd_connexion_ok(PGconn *conn)
+{
+    if (PQstatus(conn) == CONNECTION_OK) {
+        return 1;
+    }
+    fprintf(stderr, PREFIXE "connexion perdue, tentative de reconnexion...\n");
+    PQreset(conn);
+    return PQstatus(conn) == CONNECTION_OK;
 }
 
 void bdd_fermer(PGconn *conn)

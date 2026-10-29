@@ -1,0 +1,130 @@
+/* ============================================================
+   maison.css – Page « Ma maison » (chargé après pages.css)
+   Les cartes des étages et des pièces reprennent .carte de l'accueil.
+   ============================================================ */
+
+/* ---------- Couleurs des états ---------- */
+:root {
+    --etat-allume:      #2e7d32;    /* vert   */
+    --etat-eteint:      #8a96a3;    /* gris   */
+    --etat-panne:       #c62828;    /* rouge  */
+    --etat-indetermine: #ef6c00;    /* orange */
+}
+
+/* ---------- Fil d'Ariane + Rafraîchir ---------- */
+.fil {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;                /* sur téléphone, le bouton passe dessous */
+    gap: 8px;
+    margin-bottom: 8px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .6);   /* lisible sur la photo */
+}
+.fil-ariane {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.05rem;
+}
+.fil-lien {
+    color: #fff;
+}
+.fil-actuel {
+    font-weight: bold;
+}
+.fil-separateur {
+    opacity: .8;
+}
+.fil-rafraichir {
+    padding: 6px 12px;
+    border: 1px solid #fff;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, .25);
+    color: #fff;
+    cursor: pointer;
+}
+.fil-rafraichir:hover {
+    background: rgba(0, 0, 0, .4);
+}
+
+/* ---------- Message (erreur, commande refusée) ---------- */
+.maison-message {
+    margin: 8px 0;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #fdecea;
+    color: #8a1c13;
+}
+
+/* Titres des groupes (Luminaires, Prises...) lisibles sur la photo */
+.maison-vue .groupe-titre {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+}
+
+/* ---------- Carte d'un équipement ---------- */
+/* Bordure gauche épaisse = couleur de l'état */
+.carte-equipement {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px;
+    border-left: 8px solid var(--etat-eteint);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+    color: #1f2a37;
+    text-align: center;
+}
+.carte-equipement.etat-allume      { border-left-color: var(--etat-allume); }
+.carte-equipement.etat-eteint      { border-left-color: var(--etat-eteint); }
+.carte-equipement.etat-panne       { border-left-color: var(--etat-panne); }
+.carte-equipement.etat-indetermine { border-left-color: var(--etat-indetermine); }
+
+/* Icône en couleur seulement quand l'équipement est allumé */
+.carte-equipement:not(.etat-allume) .equipement-icone {
+    filter: grayscale(1);
+    opacity: .6;
+}
+
+.equipement-icone {
+    font-size: 2rem;
+    line-height: 1;
+}
+.equipement-nom {
+    font-weight: bold;
+}
+.equipement-etat {
+    font-weight: bold;
+}
+.etat-allume      .equipement-etat { color: var(--etat-allume); }
+.etat-eteint      .equipement-etat { color: var(--etat-eteint); }
+.etat-panne       .equipement-etat { color: var(--etat-panne); }
+.etat-indetermine .equipement-etat { color: var(--etat-indetermine); }
+
+/* ---------- Boutons de commande ---------- */
+.equipement-boutons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    margin-top: 4px;
+}
+.bouton-commande {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--couleur-principale, #2b7de9);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+.bouton-commande:hover {
+    background: var(--couleur-principale-fonce, #1f5fb4);
+}
+.bouton-commande:disabled {
+    opacity: .6;
+    cursor: wait;
+}

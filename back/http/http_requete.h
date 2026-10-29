@@ -24,6 +24,7 @@ struct Session;
 typedef struct {
     char   methode[8];      /* "GET", "POST"...                       */
     char   chemin[256];     /* "/api/login" (sans la partie ?x=...)    */
+    char   parametres[256]; /* ce qui suit le ?, ex. "piece=23&relire=1" ("" si rien) */
     char  *corps;           /* début du corps dans tampon, NULL si vide */
     size_t taille_corps;    /* nombre d'octets du corps                */
     const struct Session *session;  /* qui appelle : rempli par route pour une
@@ -38,6 +39,12 @@ typedef struct {
     400  requête mal formée     (à renvoyer au client tel quel) ;
     413  requête trop grosse    (idem). */
 int http_requete_lire(int client, Requete *req);
+
+/* Cherche le paramètre nom dans l'adresse (ex. "piece" dans
+   "/api/maison?piece=23&relire=1") et copie sa valeur ("23") dans dest.
+   Renvoie 0 si trouvé, -1 sinon. */
+int http_requete_parametre(const Requete *req, const char *nom,
+                           char *dest, size_t taille);
 
 /* Cherche l'en-tête nom (ex. "Authorization", majuscules ignorées)
    et copie sa valeur dans dest. Renvoie 0 si trouvé, -1 sinon. */

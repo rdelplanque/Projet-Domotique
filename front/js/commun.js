@@ -5,11 +5,15 @@
    3. Bouton Retour (vers data-retour, sinon vers l'accueil)
    4. Bouton Déconnexion
    5. Affiche les éléments [data-droit] autorisés
+   6. Renvoie à l'accueil si la page demande un droit absent
    La page se décrit sur <body> :
      data-page="accueil" | "maison" | ...   (obligatoire)
      data-titre="Scénarios"                  (titre de l'en-tête)
      data-retour="/pages/scenarios.html"     (facultatif)
+     data-droit="consulter"                  (facultatif : droit pour voir la page)
    Besoin de session.js, chargé avant.
+   Le script propre à la page attend la fin des contrôles avec :
+     pagePrete.then(function (ok) { if (ok) { ... } });
    ============================================================ */
 
 const ACCUEIL = "/pages/accueil.html";
@@ -95,27 +99,40 @@ function afficherErreur(texte) {
 }
 
 
-/* 1 : point de départ, au chargement de la page */
+/* 1 : point de départ, au chargement de la page.
+   Renvoie true si la page peut s'afficher, false sinon. */
 async function demarrerPage() {
     let resultat;
+    const droitPage = document.body.dataset.droit;
 
     if (!sessionStorage.getItem("jeton")) {
         retourLogin();                  /* pas de bracelet du tout */
-        return;
+        return false;
     }
 
     resultat = await api("GET", "/api/moi");
     if (resultat.code === 401) {
-        return;                         /* api() renvoie déjà au login */
+        return false;                   /* api() renvoie déjà au login */
     }
     if (resultat.code !== 200 || resultat.donnees === null) {
         afficherErreur("Le serveur ne répond pas. Réessayez dans un instant.");
-        return;
+        return false;
     }
 
     droits = resultat.donnees.droits || [];
+
+    /* 6 : page ouverte en tapant son adresse sans en avoir le droit.
+       Simple confort : le serveur refuse de toute façon les données (403). */
+    if (droitPage && !droits.includes(droitPage)) {
+        location.replace(ACCUEIL);
+        return false;
+    }
+
     fabriquerEntete();
     afficherSelonDroits();
+    return true;
 }
 
-demarrerPage();
+/* Une « promesse » : le résultat de demarrerPage, disponible plus tard.
+   Les scripts des pages s'en servent pour démarrer APRÈS les contrôles. */
+const pagePrete = demarrerPage();
