@@ -18,7 +18,7 @@
    Remplie une fois au démarrage, puis seulement LUE par les autres modules. */
 typedef struct {
     /* --- SimDom (arguments de la ligne de commande) --- */
-    char simdom_ip[16];          /* "255.255.255.255" = 15 caractères + '\0' */
+    char simdom_ip[16];          /* "192.168.10.10" = 15 caractères + '\0' */
     int  simdom_port;
 
     /* --- Base de données (bloc "bdd" de config.json) --- */

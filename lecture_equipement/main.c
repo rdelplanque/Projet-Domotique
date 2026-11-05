@@ -1,11 +1,9 @@
 /*
  * main.c - Programme lecture_equipement
  *
- * Lit equipement.txt (fourni par le simulateur SimDom) et produit :
+ * Lit equipement.txt (fourni par le simulateur) et donne :
  *   - pieces.json      : les pièces / emplacements
  *   - equipements.json : les équipements
- * chargés ensuite par sql/peuplement_de_la_bdd/03_piece.sql et 06_equipement.sql.
- * Aucune correction des données : seule leur forme change.
  *
  * Organisation :
  *   main.c               lecture ligne par ligne et aiguillage (ce fichier)
@@ -13,7 +11,7 @@
  *   format_equipement.c/.h   connaissance de equipement.txt (sections, états, types)
  *   json.c/.h            écriture des objets JSON
  *
- * Compilation et lancement (depuis le dossier lecture_equipement) :
+ * Compilation et lancement:
  *   gcc -Wall -Wextra -std=c11 -o lecture_equipement *.c
  *   ./lecture_equipement equipement.txt
  */
