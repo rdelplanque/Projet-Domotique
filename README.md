@@ -123,5 +123,4 @@ Mise en place (une seule fois) :
 ipconfig                   # IPv4 de la carte Wi-Fi du PC
 Get-NetConnectionProfile   # le Wi-Fi doit être en Private
 ```
-- Test sur le PC : `http://localhost:8080`
 - Wi-Fi d'école ou public (appareils isolés) : utiliser le point d'accès mobile du PC ou du téléphone.
