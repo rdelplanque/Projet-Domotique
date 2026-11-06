@@ -12,7 +12,7 @@ make -C back clean      # supprime les fichiers compilés
 ```bash
 ./demarrer.sh <ip_simdom> <port_simdom>     # ex. ./demarrer.sh 192.168.56.1 53217
 ```
-Depuis Windows : `lancer.ps1` sous powershell (démarre la VM, détecte le port de SimDom, lance `demarrer.sh` sur la VM).
+Depuis Windows : `lancer.ps1` sous powershell (démarre SimDOM, démarre la VM, détecte le port de SimDom, acces par SSH, lance `demarrer.sh` sur la VM).
 
 ## Base de données
 # 1 automatiser les données de la BDD
@@ -105,7 +105,7 @@ sudo tail -f /var/log/nginx/error.log      # erreurs (403, 502...)
 - Raspberry Pi : adapter la ligne `root` de `domotique.conf`.
 
 
-## Accès depuis un téléphone (même Wi-Fi que le PC)
+## Accès depuis un téléphone (même réseau local que le PC)
 
 La VM (192.168.56.10) n'est pas visible depuis le Wi-Fi : le PC sert de relais.
 Téléphone → `http://<IP Wi-Fi du PC>:8080` → VirtualBox → nginx (port 80 de la VM).
@@ -123,4 +123,3 @@ Mise en place (une seule fois) :
 ipconfig                   # IPv4 de la carte Wi-Fi du PC
 Get-NetConnectionProfile   # le Wi-Fi doit être en Private
 ```
-- Wi-Fi d'école ou public (appareils isolés) : utiliser le point d'accès mobile du PC ou du téléphone.

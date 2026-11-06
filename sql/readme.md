@@ -19,7 +19,7 @@ lecture_equipement/
   equipements.json          généré (211 équipements)
 sql/
   01_creation_tables.sql    supprime puis recrée les 11 tables
-  peuplement_de_la_bdd/     la maison (sur Git)
+  peuplement_de_la_bdd/     la maison
     01_batiment.sql
     02_localisation.sql     Extérieur, Rez-de-chaussée, Premier étage
     03_piece.sql            lit pieces.json
@@ -28,13 +28,13 @@ sql/
     06_equipement.sql       lit equipements.json
   peuplement_des_utilisateurs/
     01_type_utilisateur.sql       les 5 profils
-    02_utilisateurs.exemple.sql   modèle des comptes de test (faux mots de passe, sur Git)
-    02_utilisateurs.sql           copie avec les vrais mots de passe (PAS sur Git)
+    02_utilisateurs.exemple.sql   modèle des comptes avec faux mots de passe, passe sur Git
+    02_utilisateurs.sql           copie avec les vrais mots de passe (PAS sur Git/ noté sur gitignore)
     03_acces_piece.sql            pièces 9, 10, 11 pour tous les invités
 ```
 
 ## Ordre d'exécution
-L'ordre compte : une table qui a une clé étrangère se remplit **après** la table qu'elle référence.
+L'ordre compte : une table qui a une clé étrangère se remplit **APRES** la table qu'elle référence.
 1. `lecture_equipement` (seulement si `equipement.txt` a changé)
 2. `01_creation_tables.sql`
 3. `peuplement_de_la_bdd/01` à `06`, dans l'ordre
