@@ -1,7 +1,7 @@
 /* ============================================================
    http_reponse.c – Préparation et envoi d'une réponse HTTP
 
-   Ce qui part vers le client (chaque ligne finit par \r\n) :
+   chaque ligne finit par \r\n :
      HTTP/1.1 200 OK                   ← ligne de statut
      Content-Type: application/json    ← en-têtes
      Content-Length: 11
@@ -96,7 +96,7 @@ int http_reponse_erreur(Reponse *rep, int code, const char *message)
         cJSON_Delete(objet);
         return -1;
     }
-    rep->json = cJSON_PrintUnformatted(objet);  /* texte alloué par cJSON (malloc) */
+    rep->json = cJSON_PrintUnformatted(objet);  /* texte alloué par cJSON */
     cJSON_Delete(objet);
     return rep->json != NULL ? 0 : -1;
 }
@@ -132,6 +132,6 @@ int http_reponse_envoyer(int client, const Reponse *rep)
 
 void http_reponse_liberer(Reponse *rep)
 {
-    free(rep->json);        /* free(NULL) ne fait rien : pas besoin de tester */
+    free(rep->json);        
     rep->json = NULL;
 }

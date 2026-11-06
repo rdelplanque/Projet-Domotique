@@ -1,7 +1,7 @@
 /* ============================================================
    http_requete.c – Lecture et découpage d'une requête HTTP
 
-   Rappel de ce qui arrive (chaque ligne finit par \r\n) :
+   chaque ligne finit par \r\n :
      POST /api/login HTTP/1.0          ← ligne 1
      Host: localhost                   ← en-têtes
      Content-Length: 52

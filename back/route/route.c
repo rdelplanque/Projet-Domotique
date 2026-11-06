@@ -53,10 +53,10 @@ typedef struct {
     Traitement  traitement;     /* fonction à appeler  */
 } Route;
 
-/* Le répertoire de l'API. La ligne {NULL...} marque la fin. */
+/* Le répertoire de l'API. {NULL...} marque la fin. */
 static const Route ROUTES[] = {
     { "GET",  "/api/ping",     PUBLIQUE, DROIT_AUCUN,     traiter_ping     },
-    { "POST", "/api/login",    PUBLIQUE, DROIT_AUCUN,     auth_login       },  /* auth/auth.c   */
+    { "POST", "/api/login",    PUBLIQUE, DROIT_AUCUN,     auth_login       }, 
     { "POST", "/api/logout",   PROTEGEE, DROIT_AUCUN,     auth_logout      },
     { "GET",  "/api/moi",      PROTEGEE, DROIT_AUCUN,     auth_moi         },
     { "GET",  "/api/maison",   PROTEGEE, DROIT_CONSULTER, maison_lire      },  /* core/maison.c */
@@ -83,7 +83,7 @@ void route_traiter(Requete *req, Reponse *rep)
             continue;                           /* pas cette méthode : suivante */
         }
 
-        /* Route trouvée. Protégée ? Alors le videur contrôle,
+        /* Route trouvée. Protégée ? Alors on contrôle,
            ICI et une seule fois, pour toutes les routes protégées :
              1. le bracelet (jeton valable ?)         sinon 401 ;
              2. le profil a-t-il le droit de la route ? sinon 403. */
@@ -103,7 +103,6 @@ void route_traiter(Requete *req, Reponse *rep)
     }
 
     if (chemin_connu) {
-        /* ex. GET /api/login alors que seul POST existe */
         http_reponse_erreur(rep, 405, "méthode non autorisée pour cette route");
     } else {
         http_reponse_erreur(rep, 404, "route inconnue");

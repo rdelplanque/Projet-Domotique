@@ -10,12 +10,9 @@
 #include <stddef.h>         /* size_t */
 
 /* Taille maximale d'une requête complète (en-têtes + corps).
-   Largement assez pour un login ou un scénario LDSD. */
+   Largement assez pour un login ou un scénario LDSD plus tard. */
 #define HTTP_TAILLE_MAX 16384
 
-/* Annonce : « une struct Session existe » (définie dans auth/session.h).
-   Ça suffit pour ranger son ADRESSE dans la fiche, sans que le module http
-   ait besoin de savoir ce qu'il y a dedans. */
 struct Session;
 
 /* La fiche d'une requête découpée.
