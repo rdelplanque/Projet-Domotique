@@ -6,7 +6,7 @@
     <title>R-Domotik – Accueil</title>
     <link rel="stylesheet" href="/css/index.css">
     <link rel="stylesheet" href="/css/pages.css">
-    <!-- defer : exécutés dans cet ordre, une fois la page lue -->
+
     <script src="/js/session.js" defer></script>
     <script src="/js/commun.js" defer></script>
 </head>
@@ -18,9 +18,10 @@
 
     <main class="contenu">
 
-        <!-- Icônes : une image par carte (logo.jpg en attendant les vraies).
-             Chaque carte est cachée (hidden) ; commun.js montre celles
-             dont le data-droit est dans la liste donnée par /api/moi. -->
+        <!-- Icônes : une image par carte (logo.jpg en attendant les futurs logo).
+             Chaque carte est cachée par hidden ; commun.js montre celles
+             dont le data-droit est dans la liste donnée par /api/moi. 
+             il n'y a pas de sécurité ici, la VRAI sécurité est dans le serveur -->
         <section class="groupe">
             <h2 class="groupe-titre">La maison</h2>
             <div class="cartes">
