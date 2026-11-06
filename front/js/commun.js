@@ -45,7 +45,7 @@ async function deconnecter() {
 }
 
 
-/* 2, 3 et 4 : l'en-tête */
+/* l'en-tête */
 function fabriquerEntete() {
     const entete = document.querySelector("header.entete");
     const page = document.body.dataset.page;
