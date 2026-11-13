@@ -154,6 +154,7 @@ CREATE INDEX idx_historique_equipement_date
 -- -----------------------------------------------------------------------------
 
 -- utilisable : true quand le scénario a été vérifié sans erreur
+-- actif : true quand un scénario programmé attend son heure (Activer)
 -- fk_id_utilisateur : créateur (on ne peut pas supprimer un utilisateur
 -- qui a encore des scénarios)
 CREATE TABLE scenario (
@@ -161,6 +162,7 @@ CREATE TABLE scenario (
     nom_scenario       varchar(100) NOT NULL UNIQUE,
     script_ldsd        text NOT NULL,
     utilisable         boolean NOT NULL DEFAULT false,
+    actif              boolean NOT NULL DEFAULT false,
     fk_id_utilisateur  bigint NOT NULL REFERENCES utilisateur (id_utilisateur)
 );
 

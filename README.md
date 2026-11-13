@@ -15,13 +15,13 @@ make -C back clean      # supprime les fichiers compilés
 Depuis Windows : `lancer.ps1` sous powershell (démarre SimDOM, démarre la VM, détecte le port de SimDom, acces par SSH, lance `demarrer.sh` sur la VM).
 
 ## Base de données
-# 1 automatiser les données de la BDD
-'''
+### 1. Automatiser les données de la BDD
+```bash
 cd lecture_equipement
 gcc -Wall -Wextra -std=c11 -o lecture_equipement *.c
-./lecture_equipement equipement.txt 
-'''
-# 2 la bdd
+./lecture_equipement equipement.txt
+```
+### 2. La BDD
 ```bash
 # se connecter
 psql -U domotique -d domotique              
@@ -40,6 +40,13 @@ psql -h localhost -U domotique -d domotique -f sql/peuplement_des_utilisateurs/0
 psql -h localhost -U domotique -d domotique -f sql/peuplement_des_utilisateurs/02_utilisateurs.sql  #n'est pas push vers git // un exemple est push vers github mais pas vers la BDD
 psql -h localhost -U domotique -d domotique -f sql/peuplement_des_utilisateurs/03_acces_piece.sql
 
+# scénarios : 2 exemples + 7 scénarios de test (rejouables)
+psql -h localhost -U domotique -d domotique -f sql/peuplement_des_scenarios/01_scenarios_exemple.sql
+psql -h localhost -U domotique -d domotique -f sql/peuplement_des_scenarios/02_scenarios_test.sql
+
+# base créée AVANT la colonne scenario.actif : l'ajouter sans rien effacer
+psql -h localhost -U domotique -d domotique -f sql/02_ajout_scenario_actif.sql
+
 # exemple de vérification:
 # toutes les tables
 psql -h localhost -U domotique -d domotique -c '\dt'        
@@ -48,6 +55,68 @@ psql -h localhost -U domotique -d domotique -c 'SELECT * FROM localisation'
 psql -h localhost -U domotique -d domotique -c 'SELECT count(*) FROM piece'      
 psql -h localhost -U domotique -d domotique -c 'SELECT count(*) FROM equipement' 
 ```
+
+## API (serveur C, derrière nginx)
+Toutes les routes protégées demandent l'en-tête `Authorization: Bearer <jeton>` (sinon 401),
+puis le droit indiqué (sinon 403). Droits par profil : `back/auth/droits.c`.
+
+| Route | Droit | Rôle |
+|---|---|---|
+| `GET /api/ping` | publique | le serveur répond |
+| `POST /api/login` | publique | connexion : jeton, profil, prénom, nom |
+| `POST /api/logout` | connecté | ferme la session |
+| `GET /api/moi` | connecté | profil et liste des droits |
+| `GET /api/maison` | consulter | étages, pièces, équipements (`?piece=23`, `&relire=1`) |
+| `POST /api/commande` | piloter | `{"id":57,"etat":1}` (+ `"mode"` pour une clim) |
+| `GET /api/scenarios` | scenarios | liste : type, utilisable, actif, en cours, texte |
+| `POST /api/scenarios/verifier` | scenarios | `{"texte":"..."}` → ce que le serveur a compris, ou la 1ʳᵉ erreur et sa ligne |
+| `POST /api/scenarios/lancer` | scenarios | `{"id":3}` lance un scénario direct (un seul à la fois) |
+| `POST /api/scenarios/arreter` | scenarios | `{"id":3}` arrête le scénario en cours |
+| `POST /api/scenarios/utilisable` | scenarios_admin | `{"id":3,"utilisable":true}` (refusé si le texte a une erreur) |
+
+Tester à la main depuis la VM :
+```bash
+JETON=$(curl -s localhost:8080/api/login -d '{"email":"admin@domotique.local","mot_de_passe":"..."}' | sed 's/.*"jeton":"\([^"]*\)".*/\1/')
+curl -s localhost:8080/api/scenarios -H "Authorization: Bearer $JETON"
+```
+
+## Scénarios (langage LDSD)
+Un scénario = un **en-tête** (quand ?) et une **liste** d'actions (quoi ?). Une instruction par ligne,
+`#` = commentaire. Les noms s'écrivent **entre guillemets**, exactement comme dans la base ;
+les mots sans guillemets sont des mots-clés.
+```
+En-tête :
+au clic
+Liste :
+fermer tous les volets de "Salon" de "Rez-de-chaussée"
+allumer "Luminaire salon nord" de "Salon" de "Rez-de-chaussée"
+allumer "Climatisation réversible" de "Salon" de "Rez-de-chaussée" en chauffage
+```
+
+| En-tête | Exemple | Type |
+|---|---|---|
+| `au clic` | `au clic` | direct (bouton Lancer) |
+| `le <jj/mm/aaaa> à <hh:mm>` | `le 24/12/2026 à 19:00` | programmé (une fois) |
+| `chaque <jour> [et <jour>…] à <hh:mm>` | `chaque samedi et dimanche à 08:00` | programmé |
+
+| Action | Pour |
+|---|---|
+| `allumer … [en chauffage / en climatisation]` | luminaires, prises, clims (le mode : clims seulement) |
+| `éteindre …` | luminaires, prises, clims |
+| `ouvrir …` / `fermer …` | volets et portes |
+
+Cible : `"X" de "P" de "E"` (un équipement), ou un groupe : `tous les luminaires`, `toutes les prises`,
+`toutes les climatisations`, `tous les volets`, suivi de `de "P" de "E"`, `de toutes les pièces de "E"`
+ou `de toutes les pièces de tous les étages`. Attention : « tous les volets » comprend les portes de garage.
+
+Code : `back/scenario/ldsd.c` (lecture et vérification), `execution.c` (exécution), `scenario.c` (routes).
+- **Lecture** : à la première erreur, numéro de ligne + message (bouton « Vérifier » de la page).
+- **Exécution** : pas de thread, le scénario avance par tranches de ~0,25 s dans la boucle HTTP
+  (les pages restent servies). Pour chaque équipement : relecture de l'état réel, panne ou absence
+  de réponse = sauté, déjà dans l'état voulu = rien envoyé, sinon commande puis relecture.
+  Toute la maison (123 luminaires) ≈ 20 s.
+- **Journal** du serveur : lignes `[scénario]` (lancement, chaque action, équipements sautés, bilan).
+- Pas encore fait : Activer / Désactiver (programmés), Modifier, Créer, Supprimer, `attendre`, conditions.
 
 ## Services
 ```bash
@@ -68,12 +137,12 @@ ssh domotique                                                    # terminal dans
 code --remote ssh-remote+domotique /home/raph/projet-domotique   # ouvrir VSCode en ssh
 ```
 ## GIT
-'''
+```bash
 git status                          # voir ce qui a changé
 git add .                           # préparer
 git commit -m "Ce que j'ai fait"    # enregistrer en local
 git push                            # envoyer sur GitHub
-'''
+```
 
 ## nginx (serveur web frontal)
 - `http://192.168.56.10/` → fichiers de `front/` (page de login)

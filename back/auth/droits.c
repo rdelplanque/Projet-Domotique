@@ -12,7 +12,7 @@
 /* Noms envoyés au navigateur, dans l'ordre de l'enum Droit.
    Ce sont les valeurs des attributs data-droit="..." des pages. */
 static const char *NOMS[DROIT_NOMBRE] = {
-    "aucun", "consulter", "piloter", "scenarios",
+    "aucun", "consulter", "piloter", "scenarios", "scenarios_admin",
     "utilisateurs", "statistiques", "configuration", "aide"
 };
 
@@ -22,12 +22,12 @@ static const struct {
     const char *profil;
     int droits[DROIT_NOMBRE];
 } TABLEAU[] = {
-    /*                  aucun consulter piloter scenario utilateurs statistiques configuration aide */
-    { "Administrateur", {  1,   1,   1,   1,   1,   1,   1,   1 } },
-    { "Propriétaire",   {  1,   1,   1,   1,   0,   1,   0,   1 } },
-    { "Utilisateur",    {  1,   1,   1,   0,   0,   1,   0,   1 } },
-    { "Invité",         {  1,   1,   1,   0,   0,   0,   0,   1 } },
-    { "Surveillance",   {  1,   1,   0,   0,   0,   1,   0,   0 } },
+    /*                  aucun consulter piloter scenario scen_admin utilateurs statistiques configuration aide */
+    { "Administrateur", {  1,   1,   1,   1,   1,   1,   1,   1,   1 } },
+    { "Propriétaire",   {  1,   1,   1,   1,   0,   0,   1,   0,   1 } },
+    { "Utilisateur",    {  1,   1,   1,   0,   0,   0,   1,   0,   1 } },
+    { "Invité",         {  1,   1,   1,   0,   0,   0,   0,   0,   1 } },
+    { "Surveillance",   {  1,   1,   0,   0,   0,   0,   1,   0,   0 } },
 };
 
 #define NB_PROFILS (sizeof TABLEAU / sizeof TABLEAU[0])

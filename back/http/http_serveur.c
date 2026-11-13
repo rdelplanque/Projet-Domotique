@@ -138,7 +138,7 @@ static long ecoule_ms(const struct timespec *debut)
          + (maintenant.tv_nsec - debut->tv_nsec) / 1000000;
 }
 
-void http_boucle(int ecoute, int intervalle_s, TachePeriodique tache)
+void http_boucle(int ecoute, int intervalle_s, TachePeriodique tache, TravailEnCours travail)
 {
     int client;
     struct sockaddr_in adresse_client;
@@ -146,6 +146,7 @@ void http_boucle(int ecoute, int intervalle_s, TachePeriodique tache)
     struct pollfd attente;
     struct timespec derniere_ronde;
     long reste_ms;
+    int attente_ms;
     int n;
 
     attente.fd = ecoute;
@@ -163,10 +164,18 @@ void http_boucle(int ecoute, int intervalle_s, TachePeriodique tache)
             continue;
         }
 
-        /* 4b. Attendre un client, mais PAS plus longtemps que l'heure de la
+        /* 4b. Un travail en cours (scénario lancé) ? Il avance d'un petit
+               morceau ; s'il en reste, on ne fera qu'un coup d'œil au
+               guichet (attente 0) avant de le rappeler. */
+        attente_ms = (tache != NULL) ? (int)reste_ms : -1;
+        if (travail != NULL && travail()) {
+            attente_ms = 0;
+        }
+
+        /* 4c. Attendre un client, mais PAS plus longtemps que l'heure de la
                prochaine ronde (-1 = sans limite, s'il n'y a pas de ronde).
                C'est poll qui attend maintenant, plus accept. */
-        n = poll(&attente, 1, tache != NULL ? (int)reste_ms : -1);
+        n = poll(&attente, 1, attente_ms);
         if (n < 0) {
             if (errno != EINTR) {
                 perror(PREFIXE "poll");
@@ -174,10 +183,10 @@ void http_boucle(int ecoute, int intervalle_s, TachePeriodique tache)
             continue;
         }
         if (n == 0) {
-            continue;                           /* personne : c'est l'heure de la ronde */
+            continue;                           /* personne : ronde ou travail */
         }
 
-        /* 4c. Un client est là : accept ne bloque plus, il le fait entrer.
+        /* 4d. Un client est là : accept ne bloque plus, il le fait entrer.
                accept renvoie une NOUVELLE prise, réservée à ce client. */
         taille = sizeof adresse_client;
         client = accept(ecoute, (struct sockaddr *)&adresse_client, &taille);

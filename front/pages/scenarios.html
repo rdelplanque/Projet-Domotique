@@ -3,37 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>R-Domotik – Mes scénarii</title>
+    <title>R-Domotik – Scénarios</title>
     <link rel="stylesheet" href="/css/index.css">
     <link rel="stylesheet" href="/css/pages.css">
     <link rel="stylesheet" href="/css/maison.css">
-    
+    <link rel="stylesheet" href="/css/scenarios.css">
+
     <script src="/js/session.js" defer></script>
     <script src="/js/commun.js" defer></script>
-    <script src="/js/maison.js" defer></script>
+    <script src="/js/scenarios.js" defer></script>
 </head>
 
-<body class="page-accueil" data-page="maison" data-titre="Ma maison" data-droit="consulter">
+<body class="page-accueil" data-page="scenarios" data-titre="Scénarios" data-droit="scenarios">
 
-    <!-- Rempli par commun.js je dois modifier le commum.js-->
+    <!-- Rempli par commun.js -->
     <header class="entete"></header>
 
     <main class="contenu">
 
-        <!-- Afficher toutes les cartes des scenarii : 
-            BTN en haut à droite "creer nouveau scénario" >> modale?
-            sur la partie gauche : afficher les cartes des scénarii >> btn "afficher" >> affiche le script du scenario en modale
-                                                                            "lancer" (pour les scenarii "à commande direct") 
-                                                                                                "supprimer"(hiden, seul l'admin peut suppr, pas le propriétaire)
-                                                                                                "utilisable"(hiden, seul l'admin peut suppr, pas le propriétaire)
-        -->
-
+        <!-- Création : ouvre l'éditeur (page à part, car il faut de la place
+             pour le texte LDSD, le formulaire d'action et la console) -->
+        <div class="barre-scenarios">
+            <a class="bouton-commande" href="/pages/scenario.html">+ Créer un scénario</a>
+        </div>
 
         <!-- Message d'erreur -->
         <p class="maison-message" hidden></p>
+
+        <!-- Rempli par scenarios.js : une carte par scénario -->
+        <div class="cartes scenarios-liste"></div>
+        <p class="scenarios-vide" hidden>Aucun scénario pour le moment.</p>
+
     </main>
 
     <footer class="pied">Conçu par Raphael - ESGI B2 - 2026/2027</footer>
+
+
+    <!-- Modèle d'une carte : invisible, scenarios.js le copie pour chaque
+         scénario, le remplit, puis montre les boutons qui conviennent.
+         Tous les boutons d'action sont donc cachés (hidden) au départ.
+         Les boutons réservés à l'administrateur portent data-droit :
+         commun.js ne voit pas les cartes (fabriquées après lui),
+         c'est scenarios.js qui teste droits.includes("scenarios_admin"). -->
+    <template id="modele-scenario">
+        <article class="carte-scenario">
+            <h2 class="scenario-nom"></h2>
+            <p class="scenario-createur"></p>
+
+            <!-- Type : Direct / Programmé ; Utilisable / Non utilisable ;
+                 En cours, Actif ou Arrêté -->
+            <p class="scenario-etiquettes">
+                <span class="etiquette scenario-type"></span>
+                <span class="etiquette scenario-utilisable"></span>
+                <span class="etiquette scenario-etat"></span>
+            </p>
+
+            <div class="scenario-boutons">
+                <button class="bouton-commande" type="button" data-action="afficher">Afficher</button>
+                <a class="bouton-commande" data-action="modifier">Modifier</a>
+
+                <!-- Scénario direct -->
+                <button class="bouton-commande" type="button" data-action="lancer" hidden>Lancer</button>
+                <button class="bouton-commande" type="button" data-action="arreter" hidden>Arrêter</button>
+
+                <!-- Scénario programmé -->
+                <button class="bouton-commande" type="button" data-action="activer" hidden>Activer</button>
+                <button class="bouton-commande" type="button" data-action="desactiver" hidden>Désactiver</button>
+
+                <!-- Administrateur seulement -->
+                <button class="bouton-commande" type="button" data-action="utilisable"
+                        data-droit="scenarios_admin" hidden>Rendre utilisable</button>
+                <button class="bouton-commande bouton-danger" type="button" data-action="supprimer"
+                        data-droit="scenarios_admin" hidden>Supprimer</button>
+            </div>
+        </article>
+    </template>
+
+
+    <!-- Fenêtre « Afficher » : le script LDSD, en lecture seule,
+         et « Vérifier » : ce que le serveur en a compris (console) -->
+    <dialog class="fenetre fenetre-script">
+        <h2 class="fenetre-titre"></h2>
+        <pre class="fenetre-texte"></pre>
+        <pre class="fenetre-console" hidden></pre>
+        <form method="dialog" class="fenetre-boutons">
+            <button class="bouton-commande bouton-neutre fenetre-verifier" type="button">Vérifier</button>
+            <button class="bouton-commande">Fermer</button>
+        </form>
+    </dialog>
+
+    <!-- Fenêtre « Supprimer » : confirmation -->
+    <dialog class="fenetre fenetre-supprimer">
+        <h2 class="fenetre-titre">Supprimer ce scénario ?</h2>
+        <p class="fenetre-nom"></p>
+        <form method="dialog" class="fenetre-boutons">
+            <button class="bouton-commande bouton-neutre" value="non">Annuler</button>
+            <button class="bouton-commande bouton-danger" value="oui">Supprimer</button>
+        </form>
+    </dialog>
 
 </body>
 </html>

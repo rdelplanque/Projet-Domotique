@@ -11,6 +11,8 @@
 #include "http/http_serveur.h"
 #include "auth/auth.h"
 #include "core/maison.h"
+#include "scenario/scenario.h"
+#include "scenario/execution.h"
 #include "simdom/simdom.h"
 
 int main(int argc, char *argv[])
@@ -41,6 +43,7 @@ int main(int argc, char *argv[])
     /* Les modules qui ont besoin de la base reçoivent la connexion */
     auth_initialiser(conn);
     maison_initialiser(conn);
+    scenario_initialiser(conn);
 
     /* 3. Écoute HTTP de l'API. Échec = arrêt. */
     ecoute = http_ouvrir(cfg.port_api);
@@ -61,8 +64,9 @@ int main(int argc, char *argv[])
 
     printf("Serveur prêt. Ctrl+C pour l'arrêter.\n");
     fflush(stdout);
-    /* Boucle du guichet, avec une « ronde » régulière : relire la maison */
-    http_boucle(ecoute, cfg.intervalle_relecture_s, maison_ronde);  /* ne revient jamais */
+    /* Boucle du guichet, avec une « ronde » régulière : relire la maison, */
+    /* + le travail en cours : un scénario lancé avance par petites tranches */
+    http_boucle(ecoute, cfg.intervalle_relecture_s, maison_ronde, scenario_avancer);  /* ne revient jamais */
 
     simdom_fermer();         /* jamais atteint pour l'instant */
     bdd_fermer(conn);        /* jamais atteint pour l'instant (arrêt propre : plus tard) */

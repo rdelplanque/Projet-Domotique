@@ -1,0 +1,132 @@
+/* ============================================================
+   scenarios.css – Page « Scénarios » (chargé après maison.css)
+   Reprend .cartes (pages.css), .bouton-commande et .maison-message
+   (maison.css).
+   ============================================================ */
+
+/* ---------- Bouton « Créer » en haut à droite ---------- */
+.barre-scenarios {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+a.bouton-commande {
+    text-align: center;
+    text-decoration: none;
+}
+
+/* ---------- Liste ---------- */
+.scenarios-liste {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+.scenarios-vide {
+    padding: 16px;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+}
+
+/* ---------- Carte d'un scénario ---------- */
+.carte-scenario {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+    color: #1f2a37;
+}
+.scenario-nom {
+    font-size: 1.1rem;
+    overflow-wrap: anywhere;        /* un nom très long ne dépasse pas */
+}
+.scenario-createur {
+    font-size: .85rem;
+    color: #5b6775;
+}
+
+/* ---------- Étiquettes (type, utilisable, état) ---------- */
+.scenario-etiquettes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.etiquette {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #e8ecf1;
+    color: #1f2a37;
+    font-size: .8rem;
+    font-weight: 600;
+}
+/* Classes posées par scenarios.js ; couleurs de maison.css */
+.etiquette.vert   { background: var(--etat-allume); color: #fff; }
+.etiquette.orange { background: var(--etat-indetermine); color: #fff; }
+
+/* ---------- Boutons ---------- */
+.scenario-boutons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: auto;               /* boutons alignés en bas des cartes */
+    padding-top: 4px;
+}
+.bouton-danger {
+    background: var(--etat-panne);
+}
+.bouton-danger:hover {
+    background: #8e1c1c;
+}
+.bouton-neutre {
+    background: var(--etat-eteint);
+}
+.bouton-neutre:hover {
+    background: #6c7885;
+}
+
+/* ---------- Fenêtres (dialog) ---------- */
+.fenetre {
+    width: min(600px, calc(100vw - 32px));
+    margin: auto;                   /* la remise à zéro retire le centrage */
+    padding: 20px;
+    border: none;
+    border-radius: 12px;
+    color: #1f2a37;
+}
+.fenetre::backdrop {
+    background: rgba(0, 0, 0, .55);
+}
+.fenetre-titre {
+    margin-bottom: 12px;
+    font-size: 1.15rem;
+    overflow-wrap: anywhere;
+}
+.fenetre-texte {
+    white-space: pre-wrap;          /* les longues lignes passent à la ligne */
+    overflow-wrap: anywhere;
+    max-height: 60vh;
+    overflow: auto;
+    padding: 12px;
+    border-radius: 8px;
+    background: #1f2a37;
+    color: #fff;
+    font-size: .85rem;
+}
+/* Console de « Vérifier » : vert si correct, rouge sinon */
+.fenetre-console {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: .85rem;
+}
+.fenetre-console.console-ok     { background: #e8f5e9; color: #1b5e20; }
+.fenetre-console.console-erreur { background: #fdecea; color: #8a1c13; }
+
+.fenetre-boutons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}

@@ -14,6 +14,7 @@ typedef enum {
     DROIT_CONSULTER,        /* voir l'état des équipements        */
     DROIT_PILOTER,          /* allumer / éteindre                 */
     DROIT_SCENARIOS,        /* gérer les scénarios                */
+    DROIT_SCENARIOS_ADMIN,  /* supprimer, rendre utilisable       */
     DROIT_UTILISATEURS,     /* gérer les utilisateurs             */
     DROIT_STATISTIQUES,     /* voir les statistiques              */
     DROIT_CONFIGURATION,    /* configurer l'application           */

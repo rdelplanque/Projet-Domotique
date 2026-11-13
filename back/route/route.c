@@ -13,6 +13,8 @@
 #include "../auth/auth.h"
 #include "../auth/droits.h"     /* Droit, a_le_droit */
 #include "../core/maison.h"
+#include "../scenario/scenario.h"
+#include "../scenario/execution.h"
 
 
 /* ------------------------------------------------------------
@@ -61,6 +63,11 @@ static const Route ROUTES[] = {
     { "GET",  "/api/moi",      PROTEGEE, DROIT_AUCUN,     auth_moi         },
     { "GET",  "/api/maison",   PROTEGEE, DROIT_CONSULTER, maison_lire      },  /* core/maison.c */
     { "POST", "/api/commande", PROTEGEE, DROIT_PILOTER,   maison_commander },
+    { "GET",  "/api/scenarios", PROTEGEE, DROIT_SCENARIOS, scenario_lister },  /* scenario/scenario.c */
+    { "POST", "/api/scenarios/verifier", PROTEGEE, DROIT_SCENARIOS, scenario_verifier },
+    { "POST", "/api/scenarios/lancer",   PROTEGEE, DROIT_SCENARIOS, scenario_lancer },   /* scenario/execution.c */
+    { "POST", "/api/scenarios/arreter",  PROTEGEE, DROIT_SCENARIOS, scenario_arreter },
+    { "POST", "/api/scenarios/utilisable", PROTEGEE, DROIT_SCENARIOS_ADMIN, scenario_utilisable },
     { NULL, NULL, PUBLIQUE, DROIT_AUCUN, NULL }
 };
 

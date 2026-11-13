@@ -19,6 +19,7 @@ lecture_equipement/
   equipements.json          généré (211 équipements)
 sql/
   01_creation_tables.sql    supprime puis recrée les 11 tables
+  02_ajout_scenario_actif.sql  ajoute la colonne scenario.actif à une base déjà créée
   peuplement_de_la_bdd/     la maison
     01_batiment.sql
     02_localisation.sql     Extérieur, Rez-de-chaussée, Premier étage
@@ -31,6 +32,9 @@ sql/
     02_utilisateurs.exemple.sql   modèle des comptes avec faux mots de passe, passe sur Git
     02_utilisateurs.sql           copie avec les vrais mots de passe (PAS sur Git/ noté sur gitignore)
     03_acces_piece.sql            pièces 9, 10, 11 pour tous les invités
+  peuplement_des_scenarios/
+    01_scenarios_exemple.sql      « Soirée salon » (direct), « Réveil du week-end » (programmé)
+    02_scenarios_test.sql         7 scénarios « Test - … » : toute la maison allumée / éteinte...
 ```
 
 ## Ordre d'exécution
@@ -40,6 +44,10 @@ L'ordre compte : une table qui a une clé étrangère se remplit **APRES** la ta
 3. `peuplement_de_la_bdd/01` à `06`, dans l'ordre
 4. `peuplement_des_utilisateurs/01` à `03`, après avoir copié `02_utilisateurs.exemple.sql`
    en `02_utilisateurs.sql` et remplacé les `A_CHANGER_...`
+5. `peuplement_des_scenarios/01` et `02`
+
+Base déjà créée avant l'ajout de `scenario.actif` : lancer seulement `02_ajout_scenario_actif.sql`
+(il n'efface rien), puis l'étape 5.
 
 Les commandes sont dans le README principal. Toujours lancer `psql` depuis `~/projet-domotique`
 (les scripts 03 et 06 trouvent les JSON par un chemin relatif).
