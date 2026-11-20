@@ -39,4 +39,16 @@ int bdd_lire_scenario(PGconn *conn, long long id, Scenario *s);
    Renvoie 0 si fait, 1 s'il n'existe pas, -1 en cas d'erreur de la base. */
 int bdd_ecrire_utilisable(PGconn *conn, long long id, int utilisable);
 
+/* Crée un scénario (non utilisable, inactif) au nom de l'utilisateur
+   id_createur. Son numéro est rangé dans *id_sortie.
+   Renvoie 0 si fait, 1 si le nom est déjà pris, -1 en cas d'erreur de la base. */
+int bdd_creer_scenario(PGconn *conn, const char *nom, const char *texte,
+                       long long id_createur, long long *id_sortie);
+
+/* Remplace le nom et le texte du scénario id. Il redevient non utilisable
+   et inactif : l'administrateur doit le revalider.
+   Renvoie 0 si fait, 1 si aucun scénario n'a été modifié (id inconnu,
+   ou nom déjà pris par un AUTRE scénario), -1 en cas d'erreur de la base. */
+int bdd_modifier_scenario(PGconn *conn, long long id, const char *nom, const char *texte);
+
 #endif /* BDD_SCENARIO_H */

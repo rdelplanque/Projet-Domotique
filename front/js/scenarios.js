@@ -3,7 +3,8 @@
    Une carte par scénario, copiée du <template id="modele-scenario">.
    Pour l'instant : afficher la liste et le texte d'un scénario,
    le vérifier (le serveur le lit et dit ce qu'il a compris),
-   lancer et arrêter un scénario direct, le rendre (non) utilisable (admin).
+   lancer et arrêter un scénario direct, le rendre (non) utilisable (admin),
+   ouvrir l'éditeur (Modifier → scenario.html?id=...).
    La liste est relue toutes les 2 s (« En cours » → « Arrêté »).
    Les autres boutons arriveront avec leurs routes (message « bientôt »).
    Besoin de session.js (api) et commun.js (droits, pagePrete).
@@ -123,6 +124,9 @@ function carteScenario(s) {
         });
     }
 
+    /* Modifier : l'éditeur, sur ce scénario */
+    bouton("modifier").href = "/pages/scenario.html?id=" + s.id;
+
     /* Lancer / Arrêter : le serveur exécute le scénario */
     bouton("lancer").addEventListener("click", function () {
         commander(bouton("lancer"), "/api/scenarios/lancer", { id: s.id });
@@ -132,7 +136,7 @@ function carteScenario(s) {
     });
 
     /* Pas encore de route côté serveur pour ces boutons */
-    ["modifier", "activer", "desactiver"].forEach(function (action) {
+    ["activer", "desactiver"].forEach(function (action) {
         bouton(action).addEventListener("click", function () {
             montrerMessage(BIENTOT);
         });

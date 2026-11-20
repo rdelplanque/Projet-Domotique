@@ -35,6 +35,26 @@ static const char *SQL_UTILISABLE =
     "WHERE id_scenario = $1";
 
 
+/* $1 = nom, $2 = texte, $3 = id du créateur.
+   ON CONFLICT ... DO NOTHING : si le nom existe déjà, rien n'est inséré
+   et RETURNING ne renvoie aucune ligne (pas d'erreur SQL à décoder). */
+static const char *SQL_CREER =
+    "INSERT INTO scenario (nom_scenario, script_ldsd, utilisable, actif, fk_id_utilisateur) "
+    "VALUES ($1, $2, false, false, $3) "
+    "ON CONFLICT (nom_scenario) DO NOTHING "
+    "RETURNING id_scenario";
+
+/* $1 = id, $2 = nom, $3 = texte.
+   NOT EXISTS : on ne touche à rien si un AUTRE scénario porte déjà ce nom
+   (0 ligne modifiée au lieu d'une erreur « UNIQUE »). */
+static const char *SQL_MODIFIER =
+    "UPDATE scenario SET nom_scenario = $2, script_ldsd = $3, "
+    "       utilisable = false, actif = false "
+    "WHERE id_scenario = $1 "
+    "  AND NOT EXISTS (SELECT 1 FROM scenario autre "
+    "                  WHERE autre.nom_scenario = $2 AND autre.id_scenario <> $1)";
+
+
 /* Range la ligne i du résultat dans *s (colonnes dans l'ordre des SELECT) */
 static void remplir(const PGresult *res, int i, Scenario *s)
 {
@@ -126,6 +146,64 @@ int bdd_ecrire_utilisable(PGconn *conn, long long id, int utilisable)
         return -1;
     }
     /* PQcmdTuples : nombre de lignes modifiées, en texte ("1" ou "0") */
+    modifie = (strcmp(PQcmdTuples(res), "1") == 0);
+    PQclear(res);
+    return modifie ? 0 : 1;
+}
+
+int bdd_creer_scenario(PGconn *conn, const char *nom, const char *texte,
+                       long long id_createur, long long *id_sortie)
+{
+    PGresult *res;
+    char id_texte[24];
+    const char *params[3];
+    int cree;
+
+    if (!bdd_connexion_ok(conn)) {
+        fprintf(stderr, PREFIXE "base de données injoignable\n");
+        return -1;
+    }
+    snprintf(id_texte, sizeof id_texte, "%lld", id_createur);
+    params[0] = nom;
+    params[1] = texte;
+    params[2] = id_texte;
+
+    res = PQexecParams(conn, SQL_CREER, 3, NULL, params, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {     /* RETURNING : des lignes */
+        fprintf(stderr, PREFIXE "erreur SQL : %s", PQerrorMessage(conn));
+        PQclear(res);
+        return -1;
+    }
+    cree = (PQntuples(res) == 1);       /* 0 ligne : le nom était déjà pris */
+    if (cree) {
+        *id_sortie = strtoll(PQgetvalue(res, 0, 0), NULL, 10);
+    }
+    PQclear(res);
+    return cree ? 0 : 1;
+}
+
+int bdd_modifier_scenario(PGconn *conn, long long id, const char *nom, const char *texte)
+{
+    PGresult *res;
+    char id_texte[24];
+    const char *params[3];
+    int modifie;
+
+    if (!bdd_connexion_ok(conn)) {
+        fprintf(stderr, PREFIXE "base de données injoignable\n");
+        return -1;
+    }
+    snprintf(id_texte, sizeof id_texte, "%lld", id);
+    params[0] = id_texte;
+    params[1] = nom;
+    params[2] = texte;
+
+    res = PQexecParams(conn, SQL_MODIFIER, 3, NULL, params, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, PREFIXE "erreur SQL : %s", PQerrorMessage(conn));
+        PQclear(res);
+        return -1;
+    }
     modifie = (strcmp(PQcmdTuples(res), "1") == 0);
     PQclear(res);
     return modifie ? 0 : 1;

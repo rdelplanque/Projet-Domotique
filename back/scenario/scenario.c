@@ -3,7 +3,8 @@
    ============================================================ */
 
 #include <stdio.h>          /* snprintf                */
-#include <string.h>         /* strstr, strncmp, strspn */
+#include <string.h>         /* strstr, strncmp, strspn, strlen */
+#include <ctype.h>          /* isspace, iscntrl        */
 #include <cjson/cJSON.h>
 
 #include "scenario.h"
@@ -28,6 +29,11 @@ static ListeScenarios liste;
 static Maison    maison_lue;
 static Programme programme;
 static Scenario  un_scenario;
+
+/* Le texte reçu de l'éditeur (8 Ko : hors de la pile, lui aussi) */
+static char texte_recu[SCENARIO_TAILLE_TEXTE];
+
+#define NOM_TAILLE_MAX 100      /* nom_scenario varchar(100) */
 
 
 void scenario_initialiser(PGconn *conn)
@@ -239,5 +245,194 @@ void scenario_utilisable(const Requete *req, Reponse *rep)
 
     snprintf(texte, sizeof texte, "{\"ok\":true,\"id\":%lld,\"utilisable\":%s}",
              id, utilisable ? "true" : "false");
+    http_reponse_json(rep, 200, texte);
+}
+
+
+/* ------------------------------------------------------------
+   Créer et modifier (éditeur scenario.html)
+   ------------------------------------------------------------ */
+
+/* Lit le corps {"id":3,"nom":"...","texte":"..."} (id seulement si avec_id).
+   Le nom est débarrassé de ses espaces au début et à la fin.
+   Range le résultat dans *id, nom (NOM_TAILLE_MAX + 1 octets) et texte_recu.
+   Renvoie 0 si tout est bon, -1 sinon (la réponse d'erreur 400 est remplie). */
+static int lire_formulaire(const Requete *req, Reponse *rep, int avec_id,
+                           long long *id, char *nom)
+{
+    cJSON *corps;
+    const cJSON *id_json;
+    const cJSON *nom_json;
+    const cJSON *texte_json;
+    const char *debut;
+    size_t n;
+    size_t i;
+
+    corps = (req->corps != NULL) ? cJSON_Parse(req->corps) : NULL;
+    id_json    = cJSON_GetObjectItemCaseSensitive(corps, "id");
+    nom_json   = cJSON_GetObjectItemCaseSensitive(corps, "nom");
+    texte_json = cJSON_GetObjectItemCaseSensitive(corps, "texte");
+
+    if (!cJSON_IsString(nom_json) || !cJSON_IsString(texte_json)
+        || (avec_id && (!cJSON_IsNumber(id_json) || id_json->valuedouble < 1))) {
+        cJSON_Delete(corps);
+        http_reponse_erreur(rep, 400, avec_id
+            ? "corps JSON attendu : {\"id\":...,\"nom\":\"...\",\"texte\":\"...\"}"
+            : "corps JSON attendu : {\"nom\":\"...\",\"texte\":\"...\"}");
+        return -1;
+    }
+    if (avec_id) {
+        *id = (long long)id_json->valuedouble;
+    }
+
+    /* Le nom, sans les espaces autour : « début » avance, « n » recule */
+    debut = nom_json->valuestring;
+    while (isspace((unsigned char)*debut)) {
+        debut++;
+    }
+    n = strlen(debut);
+    while (n > 0 && isspace((unsigned char)debut[n - 1])) {
+        n--;
+    }
+    if (n == 0) {
+        cJSON_Delete(corps);
+        http_reponse_erreur(rep, 400, "donnez un nom au scénario");
+        return -1;
+    }
+    if (n > NOM_TAILLE_MAX) {
+        cJSON_Delete(corps);
+        http_reponse_erreur(rep, 400, "nom trop long (100 octets au plus ; une lettre accentuée en compte 2)");
+        return -1;
+    }
+    for (i = 0; i < n; i++) {
+        if (iscntrl((unsigned char)debut[i])) {     /* retour à la ligne, tabulation... */
+            cJSON_Delete(corps);
+            http_reponse_erreur(rep, 400, "le nom doit tenir sur une ligne");
+            return -1;
+        }
+    }
+    memcpy(nom, debut, n);
+    nom[n] = '\0';
+
+    /* Le texte */
+    if (strlen(texte_json->valuestring) >= sizeof texte_recu) {
+        cJSON_Delete(corps);
+        http_reponse_erreur(rep, 400, "texte trop long (8191 octets au plus)");
+        return -1;
+    }
+    snprintf(texte_recu, sizeof texte_recu, "%s", texte_json->valuestring);
+
+    cJSON_Delete(corps);
+    return 0;
+}
+
+/* Le texte reçu est-il correct ? (choix : on n'enregistre pas un texte faux)
+   Renvoie 0 si oui ; sinon -1 et la réponse est remplie :
+     409 {"erreur":"ligne 4 : ...","ligne":4}   texte faux
+     500                                         base inaccessible */
+static int texte_correct(Reponse *rep)
+{
+    ErreurLdsd err;
+    cJSON *objet;
+    char texte[LDSD_TAILLE_MESSAGE + 32];
+
+    if (bdd_lire_maison(connexion, 0, &maison_lue) != 0) {
+        http_reponse_erreur(rep, 500, "erreur de la base de données");
+        return -1;
+    }
+    if (ldsd_lire(texte_recu, &maison_lue, &programme, &err) == 0) {
+        return 0;
+    }
+
+    /* Le numéro de ligne est aussi envoyé à part : la page peut s'en servir */
+    snprintf(texte, sizeof texte, "ligne %d : %s", err.ligne, err.message);
+    objet = cJSON_CreateObject();
+    cJSON_AddStringToObject(objet, "erreur", texte);
+    cJSON_AddNumberToObject(objet, "ligne", err.ligne);
+    http_reponse_liberer(rep);
+    rep->code = 409;
+    rep->json = cJSON_PrintUnformatted(objet);
+    cJSON_Delete(objet);
+    return -1;
+}
+
+
+/* POST /api/scenarios/creer */
+void scenario_creer(const Requete *req, Reponse *rep)
+{
+    char nom[NOM_TAILLE_MAX + 1];
+    char texte[64];
+    long long id = 0;
+    int resultat;
+
+    if (lire_formulaire(req, rep, 0, NULL, nom) != 0
+        || texte_correct(rep) != 0) {
+        return;                                 /* réponse d'erreur déjà prête */
+    }
+
+    /* Le créateur est celui qui est connecté : lu dans sa session,
+       jamais envoyé par la page (modifiable avec F12). */
+    resultat = bdd_creer_scenario(connexion, nom, texte_recu,
+                                  req->session->id_utilisateur, &id);
+    if (resultat < 0) {
+        http_reponse_erreur(rep, 500, "erreur de la base de données");
+        return;
+    }
+    if (resultat == 1) {
+        http_reponse_erreur(rep, 409, "ce nom est déjà pris par un autre scénario");
+        return;
+    }
+    printf("[scénario] n° %lld « %s » créé par l'utilisateur %lld\n",
+           id, nom, req->session->id_utilisateur);
+
+    snprintf(texte, sizeof texte, "{\"ok\":true,\"id\":%lld}", id);
+    http_reponse_json(rep, 200, texte);
+}
+
+
+/* POST /api/scenarios/modifier */
+void scenario_modifier(const Requete *req, Reponse *rep)
+{
+    char nom[NOM_TAILLE_MAX + 1];
+    char texte[64];
+    long long id = 0;
+    int resultat;
+
+    if (lire_formulaire(req, rep, 1, &id, nom) != 0) {
+        return;
+    }
+
+    /* 1. Le scénario existe-t-il ? */
+    resultat = bdd_lire_scenario(connexion, id, &un_scenario);
+    if (resultat != 0) {
+        http_reponse_erreur(rep, resultat < 0 ? 500 : 404,
+                            resultat < 0 ? "erreur de la base de données" : "scénario inconnu");
+        return;
+    }
+
+    /* 2. Choix A : pas de modification pendant qu'il tourne */
+    if (scenario_en_cours() == id) {
+        http_reponse_erreur(rep, 409, "scénario en cours : arrêtez-le avant de le modifier");
+        return;
+    }
+
+    /* 3. Le texte, puis l'enregistrement */
+    if (texte_correct(rep) != 0) {
+        return;
+    }
+    resultat = bdd_modifier_scenario(connexion, id, nom, texte_recu);
+    if (resultat < 0) {
+        http_reponse_erreur(rep, 500, "erreur de la base de données");
+        return;
+    }
+    if (resultat == 1) {
+        /* Il existe (étape 1) : c'est donc le nom qui est pris */
+        http_reponse_erreur(rep, 409, "ce nom est déjà pris par un autre scénario");
+        return;
+    }
+    printf("[scénario] n° %lld « %s » modifié par l'utilisateur %lld (repasse non utilisable)\n",
+           id, nom, req->session->id_utilisateur);
+
+    snprintf(texte, sizeof texte, "{\"ok\":true,\"id\":%lld}", id);
     http_reponse_json(rep, 200, texte);
 }

@@ -70,6 +70,8 @@ puis le droit indiqué (sinon 403). Droits par profil : `back/auth/droits.c`.
 | `POST /api/commande` | piloter | `{"id":57,"etat":1}` (+ `"mode"` pour une clim) |
 | `GET /api/scenarios` | scenarios | liste : type, utilisable, actif, en cours, texte |
 | `POST /api/scenarios/verifier` | scenarios | `{"texte":"..."}` → ce que le serveur a compris, ou la 1ʳᵉ erreur et sa ligne |
+| `POST /api/scenarios/creer` | scenarios | `{"nom":"...","texte":"..."}` → `{"id":12}` ; refusé (409) si le texte a une erreur ou si le nom est pris |
+| `POST /api/scenarios/modifier` | scenarios | `{"id":12,"nom":"...","texte":"..."}` ; repasse non utilisable ; 409 si le scénario est en cours |
 | `POST /api/scenarios/lancer` | scenarios | `{"id":3}` lance un scénario direct (un seul à la fois) |
 | `POST /api/scenarios/arreter` | scenarios | `{"id":3}` arrête le scénario en cours |
 | `POST /api/scenarios/utilisable` | scenarios_admin | `{"id":3,"utilisable":true}` (refusé si le texte a une erreur) |
@@ -116,7 +118,11 @@ Code : `back/scenario/ldsd.c` (lecture et vérification), `execution.c` (exécut
   de réponse = sauté, déjà dans l'état voulu = rien envoyé, sinon commande puis relecture.
   Toute la maison (123 luminaires) ≈ 20 s.
 - **Journal** du serveur : lignes `[scénario]` (lancement, chaque action, équipements sautés, bilan).
-- Pas encore fait : Activer / Désactiver (programmés), Modifier, Créer, Supprimer, `attendre`, conditions.
+- **Éditeur** (`front/pages/scenario.html`, `?id=12` pour modifier) : listes déroulantes
+  étage → pièce → type → équipement → action (→ mode) qui écrivent la ligne à la fin du texte ;
+  « Écrire l'en-tête » remplace la ligne qui suit `En-tête :`. Un texte faux n'est pas enregistré ;
+  un scénario créé ou modifié est non utilisable jusqu'à la validation de l'administrateur.
+- Pas encore fait : Activer / Désactiver (programmés), Supprimer, `attendre`, conditions.
 
 ## Services
 ```bash

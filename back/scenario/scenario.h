@@ -5,7 +5,8 @@
     Permet la suppression des scenarii.
     Horloge interne du serveur pour lancement des scenarii périodiques.
    Pour l'instant : la liste (GET /api/scenarios), la vérification
-   d'un texte LDSD (POST /api/scenarios/verifier, lecture dans ldsd.c)
+   d'un texte LDSD (POST /api/scenarios/verifier, lecture dans ldsd.c),
+   la création et la modification (éditeur scenario.html)
    et le lancement d'un scénario direct (execution.c).
    ============================================================ */
 
@@ -59,5 +60,26 @@ void scenario_verifier(const Requete *req, Reponse *rep);
      400 corps invalide ; 404 scénario inconnu ; 500 base inaccessible
      409 {"erreur":"erreur dans le scénario, ligne 4 : ..."} (reste non utilisable) */
 void scenario_utilisable(const Requete *req, Reponse *rep);
+
+/* POST /api/scenarios/creer   (route protégée, droit « scenarios »)
+   Corps : {"nom":"Soirée cinéma","texte":"En-tête :\nau clic\nListe :\n..."}
+   Le créateur est l'utilisateur connecté (sa session). Le texte doit être
+   correct (relu par ldsd_lire) ; le scénario est créé non utilisable.
+   Réponses :
+     200 {"ok":true,"id":12}
+     400 corps invalide, nom vide, trop long ou sur plusieurs lignes, texte trop long
+     409 {"erreur":"ligne 4 : ...","ligne":4}  texte faux
+     409 {"erreur":"ce nom est déjà pris par un autre scénario"}
+     500 base inaccessible */
+void scenario_creer(const Requete *req, Reponse *rep);
+
+/* POST /api/scenarios/modifier   (route protégée, droit « scenarios »)
+   Corps : {"id":12,"nom":"...","texte":"..."}
+   Mêmes contrôles que creer. Le scénario redevient non utilisable et
+   inactif : l'administrateur le revalide.
+   Réponses : celles de creer, plus
+     404 scénario inconnu
+     409 {"erreur":"scénario en cours : arrêtez-le avant de le modifier"} */
+void scenario_modifier(const Requete *req, Reponse *rep);
 
 #endif /* SCENARIO_H */

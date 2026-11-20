@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>R-Domotik – Éditeur de scénario</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/pages.css">
+    <link rel="stylesheet" href="/css/maison.css">
+    <link rel="stylesheet" href="/css/scenarios.css">
+    <link rel="stylesheet" href="/css/scenario.css">
+
+    <script src="/js/session.js" defer></script>
+    <script src="/js/commun.js" defer></script>
+    <script src="/js/scenario.js" defer></script>
+</head>
+
+<!-- scenario.html        : nouveau scénario
+     scenario.html?id=12  : modifier le scénario 12
+     data-retour : « ← Retour » ramène à la liste des scénarios -->
+<body class="page-accueil" data-page="scenario" data-titre="Nouveau scénario"
+      data-droit="scenarios" data-retour="/pages/scenarios.html">
+
+    <!-- Rempli par commun.js -->
+    <header class="entete"></header>
+
+    <main class="contenu">
+
+        <!-- Message d'erreur (serveur, nom déjà pris...) -->
+        <p class="maison-message" hidden></p>
+
+        <div class="editeur">
+
+            <!-- ====== Colonne de gauche : construire les lignes ====== -->
+            <div class="editeur-colonne">
+
+                <!-- Nom -->
+                <section class="bloc">
+                    <label class="bloc-titre" for="nom">Nom du scénario</label>
+                    <input id="nom" class="champ" type="text" maxlength="100"
+                           placeholder="Soirée cinéma" autocomplete="off">
+                </section>
+
+                <!-- 1. Quand ? → la ligne d'en-tête -->
+                <section class="bloc">
+                    <h2 class="bloc-titre">1. Quand ?</h2>
+
+                    <div class="choix-quand">
+                        <label><input type="radio" name="quand" value="clic" checked> Au clic</label>
+                        <label><input type="radio" name="quand" value="une"> Une fois</label>
+                        <label><input type="radio" name="quand" value="chaque"> Chaque semaine</label>
+                    </div>
+
+                    <!-- Affichés selon le choix (scenario.js) -->
+                    <label class="ligne-champ quand-date" hidden>Date
+                        <input id="date" class="champ" type="date">
+                    </label>
+                    <div class="quand-jours" hidden>
+                        <label><input type="checkbox" value="lundi"> lun.</label>
+                        <label><input type="checkbox" value="mardi"> mar.</label>
+                        <label><input type="checkbox" value="mercredi"> mer.</label>
+                        <label><input type="checkbox" value="jeudi"> jeu.</label>
+                        <label><input type="checkbox" value="vendredi"> ven.</label>
+                        <label><input type="checkbox" value="samedi"> sam.</label>
+                        <label><input type="checkbox" value="dimanche"> dim.</label>
+                    </div>
+                    <label class="ligne-champ quand-heure" hidden>Heure
+                        <input id="heure" class="champ" type="time">
+                    </label>
+
+                    <p class="erreur-champ erreur-quand" hidden></p>
+                    <button class="bouton-commande bouton-entete" type="button">Écrire l'en-tête</button>
+                </section>
+
+                <!-- 2. Une action → une ligne de la liste -->
+                <section class="bloc">
+                    <h2 class="bloc-titre">2. Ajouter une action</h2>
+
+                    <div class="grille-choix">
+                        <label>Étage
+                            <select id="choix-etage" class="champ"></select>
+                        </label>
+                        <label>Pièce
+                            <select id="choix-piece" class="champ"></select>
+                        </label>
+                        <label>Type d'équipement
+                            <select id="choix-type" class="champ"></select>
+                        </label>
+                        <label>Équipement
+                            <select id="choix-equipement" class="champ"></select>
+                        </label>
+                        <label>Action
+                            <select id="choix-action" class="champ"></select>
+                        </label>
+                        <label class="choix-mode" hidden>Mode
+                            <select id="choix-mode" class="champ">
+                                <option value="">Garder le mode actuel</option>
+                                <option value=" en chauffage">En chauffage</option>
+                                <option value=" en climatisation">En climatisation</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <p class="apercu-titre">Ligne qui sera ajoutée <span class="apercu-nombre"></span></p>
+                    <pre class="apercu-ligne"></pre>
+                    <button class="bouton-commande bouton-ajouter" type="button">+ Ajouter</button>
+                </section>
+
+            </div>
+
+            <!-- ====== Colonne de droite : le texte LDSD ====== -->
+            <div class="editeur-colonne">
+                <section class="bloc">
+                    <label class="bloc-titre" for="texte">3. Texte du scénario (modifiable)</label>
+                    <textarea id="texte" class="champ texte-ldsd" rows="16" spellcheck="false"></textarea>
+
+                    <pre class="fenetre-console" hidden></pre>
+
+                    <div class="editeur-boutons">
+                        <button class="bouton-commande bouton-neutre bouton-verifier" type="button">Vérifier</button>
+                        <a class="bouton-commande bouton-neutre" href="/pages/scenarios.html">Annuler</a>
+                        <button class="bouton-commande bouton-enregistrer" type="button">Enregistrer</button>
+                    </div>
+                    <p class="editeur-note">Un scénario enregistré est « non utilisable »
+                        tant que l'administrateur ne l'a pas validé.</p>
+                </section>
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="pied">Conçu par Raphael - ESGI B2 - 2026/2027</footer>
+
+</body>
+</html>

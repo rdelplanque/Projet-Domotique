@@ -1,0 +1,126 @@
+/* ============================================================
+   scenario.css – Éditeur de scénario (scenario.html)
+   Chargé après scenarios.css : reprend .bouton-commande,
+   .bouton-neutre, .maison-message et .fenetre-console.
+   ============================================================ */
+
+/* ---------- Deux colonnes sur PC, une sur téléphone ---------- */
+.editeur {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+}
+@media (min-width: 900px) {
+    .editeur {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: start;
+    }
+}
+.editeur-colonne {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ---------- Un bloc blanc ---------- */
+.bloc {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+    color: #1f2a37;
+}
+.bloc-titre {
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+/* ---------- Champs ---------- */
+.champ {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #c5ccd5;
+    border-radius: 8px;
+    background: #fff;
+    color: #1f2a37;
+    font: inherit;
+}
+.champ:disabled {
+    background: #eef1f4;
+    color: #5b6775;
+}
+.ligne-champ,
+.grille-choix label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: .85rem;
+    color: #5b6775;
+}
+.grille-choix {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+}
+
+/* ---------- Quand ? ---------- */
+.choix-quand,
+.quand-jours {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+}
+.quand-jours label {
+    white-space: nowrap;
+}
+.erreur-champ {
+    color: #8a1c13;
+    font-size: .85rem;
+}
+
+/* ---------- Aperçu de la ligne ---------- */
+.apercu-titre {
+    font-size: .85rem;
+    color: #5b6775;
+}
+.apercu-nombre {
+    color: #8a96a3;
+}
+.apercu-ligne {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #eef1f4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: .85rem;
+}
+
+/* Les boutons d'action ne prennent pas toute la largeur */
+.bloc > .bouton-commande {
+    align-self: flex-start;
+}
+
+/* ---------- Texte LDSD ---------- */
+.texte-ldsd {
+    min-height: 260px;
+    resize: vertical;
+    background: #1f2a37;
+    color: #fff;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: .85rem;
+    line-height: 1.5;
+}
+.editeur-boutons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.editeur-note {
+    font-size: .8rem;
+    color: #5b6775;
+}
