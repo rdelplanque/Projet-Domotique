@@ -13,8 +13,8 @@
 /* Un scénario, tel que lu dans la base */
 typedef struct {
     long long id;
-    char      nom[101];                       /* nom_scenario (UNIQUE)      */
-    char      createur[103];                  /* « Prénom Nom » du créateur */
+    char      nom[100];                       /* nom_scenario (UNIQUE)      */
+    char      createur[100];                  /* « Prénom Nom » du créateur */
     char      script[SCENARIO_TAILLE_TEXTE];  /* le texte LDSD              */
     int       utilisable;                     /* 1 / 0                      */
     int       actif;                          /* 1 / 0 (programmés)         */

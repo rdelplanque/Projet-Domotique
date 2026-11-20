@@ -51,11 +51,19 @@ typedef struct {
 
 /* ---------- Les actions ---------- */
 
-typedef enum { VERBE_ALLUMER, VERBE_ETEINDRE, VERBE_OUVRIR, VERBE_FERMER } Verbe;
+typedef enum { 
+    VERBE_ALLUMER, 
+    VERBE_ETEINDRE, 
+    VERBE_OUVRIR, 
+    VERBE_FERMER 
+} Verbe;
 
 /* Les 4 types d'équipements (nom_type_equipement dans la base) */
 typedef enum {
-    TYPE_LUMINAIRE, TYPE_PRISE, TYPE_CLIMATISATION, TYPE_VOLET,
+    TYPE_LUMINAIRE, 
+    TYPE_PRISE, 
+    TYPE_CLIMATISATION, 
+    TYPE_VOLET,
     TYPE_NOMBRE                     /* pas un type : le nombre de types */
 } TypeEquipement;
 
