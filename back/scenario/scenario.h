@@ -1,13 +1,16 @@
 /* ============================================================
-   scenario.h – Les scénarios
-    Permet la création des scenarii et enregistrement en BDD
-    Permet la modification des scenarii.
-    Permet la suppression des scenarii.
-    Horloge interne du serveur pour lancement des scenarii périodiques.
-   Pour l'instant : la liste (GET /api/scenarios), la vérification
-   d'un texte LDSD (POST /api/scenarios/verifier, lecture dans ldsd.c),
-   la création et la modification (éditeur scenario.html)
-   et le lancement d'un scénario direct (execution.c).
+   scenario.h – Les routes /api/scenarios/...
+
+   Le module scénarios (dossier scenario/) :
+     scenario.c      les routes : HTTP seulement (JSON reçu → service → réponse)
+     service.c       les règles (peut-on modifier, supprimer, activer... ?)
+                     + l'entrée dans main : scenario_initialiser, scenario_avancer
+     planificateur.c les programmés : minute par minute, file d'attente
+     execution.c     le moteur : exécute UN scénario à la fois, par tranches
+     ldsd.c          le langage : texte → Programme (en-tête + actions)
+   Toutes les routes sont protégées (droit « scenarios », sauf mention).
+   Erreurs communes : 400 corps invalide, 404 scénario inconnu, 500 base
+   inaccessible ; texte faux : 409 {"erreur":"ligne 4 : ...","ligne":4}.
    ============================================================ */
 
 #ifndef SCENARIO_H
@@ -17,28 +20,19 @@
 #include "../http/http_requete.h"
 #include "../http/http_reponse.h"
 
-/* Types de scénario, d'après la ligne qui suit « En-tête : » */
-typedef enum {
-    SCENARIO_DIRECT,        /* « au clic »                         */
-    SCENARIO_PROGRAMME,     /* « le … à … » ou « chaque … à … »    */
-    SCENARIO_INCONNU        /* pas d'en-tête trouvé                */
-} TypeScenario;
-
-/* À appeler une fois au démarrage (dans main), comme maison_initialiser. */
-void scenario_initialiser(PGconn *conn);
-
-/* Lit le type dans le texte LDSD, sans analyser le reste :
-   la première ligne non vide après « En-tête : ». */
-TypeScenario scenario_type(const char *script);
+/* Appelée par scenario_initialiser (service.c) : la connexion à la base. */
+void scenario_routes_initialiser(PGconn *conn);
 
 /* GET /api/scenarios   (route protégée, droit « scenarios »)
    Réponse 200 :
    {"ok":true,
     "scenarios":[{"id":1,"nom":"Soirée salon","createur":"Admin Test",
                   "type":"direct","utilisable":true,"actif":false,
-                  "en_cours":false,"script":"En-tête :\nau clic\n..."}, ...]}
-   type : "direct", "programme" ou "inconnu".
-   en_cours : true pour le scénario direct lancé (execution.c).
+                  "quand":"","en_cours":false,"en_attente":false,"script":"En-tête :\nau clic\n..."}, ...]}
+   type : "direct", "programme" ou "inconnu" (en-tête illisible).
+   quand : l'en-tête en clair pour un programmé (« chaque samedi à 08:00 »), "" sinon.
+   en_cours : true pour le scénario qui tourne (direct ou programmé).
+   en_attente : true pour un programmé dans la file d'attente.
    Erreur : 500 si la base ne répond pas. */
 void scenario_lister(const Requete *req, Reponse *rep);
 
@@ -81,5 +75,30 @@ void scenario_creer(const Requete *req, Reponse *rep);
      404 scénario inconnu
      409 {"erreur":"scénario en cours : arrêtez-le avant de le modifier"} */
 void scenario_modifier(const Requete *req, Reponse *rep);
+
+/* POST /api/scenarios/actif   (droit « scenarios »)
+   Corps : {"id":3,"actif":true}
+   Activer : programmé, utilisable, texte correct ; « une fois » : heure pas passée.
+   Désactiver : il sort de la file d'attente (s'il tourne, il va au bout).
+   Réponses : 200 {"ok":true,"id":3} ; 409 {"erreur":"..."} refusé. */
+void scenario_actif(const Requete *req, Reponse *rep);
+
+/* POST /api/scenarios/lancer   (droit « scenarios »)
+   Corps : {"id":3}   Scénario direct et utilisable.
+   Réponses : 200 {"ok":true,"id":3} ;
+     409 un scénario (direct ou programmé) est déjà en cours / non utilisable /
+         programmé / erreur dans le texte ;
+     503 maison non connectée. */
+void scenario_lancer(const Requete *req, Reponse *rep);
+
+/* POST /api/scenarios/arreter  (droit « scenarios »)
+   Corps : {"id":3}   Arrête le scénario s'il tourne (direct ou programmé).
+   Réponses : 200 {"ok":true,"id":3} ; 409 ce scénario n'est pas en cours. */
+void scenario_arreter(const Requete *req, Reponse *rep);
+
+/* POST /api/scenarios/supprimer  (droit « scenarios_admin »)
+   Corps : {"id":3}
+   Réponses : 200 {"ok":true,"id":3} ; 409 scénario en cours (l'arrêter d'abord). */
+void scenario_supprimer(const Requete *req, Reponse *rep);
 
 #endif /* SCENARIO_H */

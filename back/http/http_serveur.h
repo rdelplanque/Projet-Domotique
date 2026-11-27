@@ -17,7 +17,7 @@ typedef void (*TachePeriodique)(void);
 
 /* Un « travail en cours » : une fonction qui fait un petit morceau de
    travail (quelques centaines de ms au plus) et renvoie 1 s'il en reste,
-   0 sinon (ex. scenario_avancer : un scénario lancé, par petites tranches). */
+   0 sinon (ex. scenario_avancer : planificateur + scénario en cours, par tranches). */
 typedef int (*TravailEnCours)(void);
 
 /* Boucle sans fin : attendre un client, lire, répondre, fermer, recommencer.

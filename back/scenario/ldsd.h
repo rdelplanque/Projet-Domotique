@@ -104,6 +104,12 @@ typedef struct {
    Renvoie 0 si le scénario est correct, -1 sinon (*err est rempli). */
 int ldsd_lire(const char *texte, const Maison *m, Programme *p, ErreurLdsd *err);
 
+/* Lit seulement l'en-tête (quand le scénario se lance), sans la maison :
+   pour la liste (type direct / programmé) et pour le planificateur.
+   Renvoie 0 et remplit *e, ou -1 (*err est rempli). Le reste du texte
+   n'est pas vérifié : ldsd_lire le fera au lancement. */
+int ldsd_lire_en_tete(const char *texte, EnTete *e, ErreurLdsd *err);
+
 /* Nom d'un verbe (« allumer »...), d'un type au pluriel (« volets »...),
    d'un jour (0 = « lundi »...) : pour fabriquer des textes lisibles. */
 const char *ldsd_nom_verbe(Verbe v);

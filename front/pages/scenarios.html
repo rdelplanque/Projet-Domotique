@@ -49,9 +49,11 @@
         <article class="carte-scenario">
             <h2 class="scenario-nom"></h2>
             <p class="scenario-createur"></p>
+            <!-- Programmé seulement : « chaque samedi et dimanche à 08:00 » -->
+            <p class="scenario-quand" hidden></p>
 
             <!-- Type : Direct / Programmé ; Utilisable / Non utilisable ;
-                 En cours, Actif ou Arrêté -->
+                 En cours, En attente, Actif ou Arrêté -->
             <p class="scenario-etiquettes">
                 <span class="etiquette scenario-type"></span>
                 <span class="etiquette scenario-utilisable"></span>
@@ -62,7 +64,7 @@
                 <button class="bouton-commande" type="button" data-action="afficher">Afficher</button>
                 <a class="bouton-commande" data-action="modifier">Modifier</a>
 
-                <!-- Scénario direct -->
+                <!-- Scénario direct (Arrêter : aussi un programmé en cours) -->
                 <button class="bouton-commande" type="button" data-action="lancer" hidden>Lancer</button>
                 <button class="bouton-commande" type="button" data-action="arreter" hidden>Arrêter</button>
 

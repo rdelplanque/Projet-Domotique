@@ -1,5 +1,5 @@
 /* ============================================================
-   execution.c – Exécution d'un scénario direct (voir execution.h)
+   execution.c – Le moteur : exécute un scénario (voir execution.h)
 
    Pour chaque équipement visé, comme une commande de la page Ma maison :
      1. relire son état RÉEL dans SimDom ;
@@ -9,27 +9,24 @@
    ============================================================ */
 
 #include <stdio.h>          /* printf, snprintf */
-#include <string.h>         /* strcmp           */
 #include <time.h>           /* clock_gettime    */
-#include <cjson/cJSON.h>
 
 #include "execution.h"
 #include "ldsd.h"
 #include "../bdd/bdd_maison.h"
 #include "../bdd/bdd_scenario.h"
 #include "../simdom/simdom.h"
-#include "../auth/session.h"
 
 #define PREFIXE "[scénario] "
 
-/* Travail fait à chaque appel de scenario_avancer, avant de rendre la
+/* Travail fait à chaque appel de execution_avancer, avant de rendre la
    main au guichet. Un équipement = 3 échanges SimDom (~150 à 300 ms). */
 #define BUDGET_MS 250
 
 static PGconn *connexion = NULL;
 
 /* Le scénario en cours. static : gros (maison ~120 Ko, programme...),
-   et il doit survivre d'un appel de scenario_avancer au suivant. */
+   et il doit survivre d'un appel de execution_avancer au suivant. */
 static int        en_cours = 0;
 static long long  id_en_cours = 0;
 static char       nom_en_cours[101];
@@ -54,9 +51,14 @@ void execution_initialiser(PGconn *conn)
     connexion = conn;
 }
 
-long long scenario_en_cours(void)
+long long execution_en_cours(void)
 {
     return en_cours ? id_en_cours : 0;
+}
+
+const char *execution_nom_en_cours(void)
+{
+    return en_cours ? nom_en_cours : "";
 }
 
 static long ecoule_ms(const struct timespec *depuis)
@@ -113,11 +115,13 @@ static const char *piece_de(const Equipement *e)
     return "?";
 }
 
-void execution_arreter_si(long long id, const char *pourquoi)
+int execution_arreter_si(long long id, const char *pourquoi)
 {
     if (en_cours && id == id_en_cours) {
         terminer(pourquoi);
+        return 1;
     }
+    return 0;
 }
 
 /* Exécute l'action a sur l'équipement e.
@@ -182,7 +186,7 @@ static int executer_un(const Action *a, const Equipement *e)
     return 0;
 }
 
-int scenario_avancer(void)
+int execution_avancer(void)
 {
     struct timespec tranche;
 
@@ -217,117 +221,71 @@ int scenario_avancer(void)
 
 
 /* ------------------------------------------------------------
-   Les routes
+   Le lancement
    ------------------------------------------------------------ */
 
-/* Lit {"id":3} dans le corps. Renvoie l'id, ou 0 si absent ou invalide. */
-static long long lire_id(const Requete *req)
+Lancement execution_lancer(long long id, int par_planificateur, const char *qui,
+                           char *message, size_t taille)
 {
-    cJSON *json;
-    const cJSON *id;
-    long long valeur = 0;
-
-    if (req->corps == NULL || (json = cJSON_Parse(req->corps)) == NULL) {
-        return 0;
-    }
-    id = cJSON_GetObjectItemCaseSensitive(json, "id");
-    if (cJSON_IsNumber(id) && id->valuedouble >= 1) {
-        valeur = (long long)id->valuedouble;
-    }
-    cJSON_Delete(json);
-    return valeur;
-}
-
-static void repondre_ok(Reponse *rep, long long id)
-{
-    char json[64];
-
-    snprintf(json, sizeof json, "{\"ok\":true,\"id\":%lld}", id);
-    http_reponse_json(rep, 200, json);
-}
-
-void scenario_lancer(const Requete *req, Reponse *rep)
-{
-    long long id = lire_id(req);
     ErreurLdsd err;
-    char message[LDSD_TAILLE_MESSAGE + 64];
     int trouve;
 
-    if (id == 0) {
-        http_reponse_erreur(rep, 400, "corps JSON attendu : {\"id\":...}");
-        return;
-    }
+    message[0] = '\0';
     if (en_cours) {
-        snprintf(message, sizeof message, "« %s » est déjà en cours : un seul scénario direct à la fois",
+        snprintf(message, taille, "« %s » est déjà en cours : un seul scénario à la fois",
                  nom_en_cours);
-        http_reponse_erreur(rep, 409, message);
-        return;
+        return LANCEMENT_OCCUPE;
     }
 
     /* 1. Le scénario, tel qu'il est dans la base maintenant */
     trouve = bdd_lire_scenario(connexion, id, &scenario);
     if (trouve < 0) {
-        http_reponse_erreur(rep, 500, "erreur de la base de données");
-        return;
+        snprintf(message, taille, "erreur de la base de données");
+        return LANCEMENT_BASE;
     }
     if (trouve == 1) {
-        http_reponse_erreur(rep, 404, "scénario inconnu");
-        return;
+        snprintf(message, taille, "scénario inconnu");
+        return LANCEMENT_INCONNU;
     }
     if (!scenario.utilisable) {
-        http_reponse_erreur(rep, 409, "scénario non utilisable");
-        return;
+        snprintf(message, taille, "scénario non utilisable");
+        return LANCEMENT_NON_UTILISABLE;
     }
 
     /* 2. La maison, puis la lecture du texte (il a pu changer, la maison aussi) */
     if (bdd_lire_maison(connexion, 0, &maison_exec) != 0) {
-        http_reponse_erreur(rep, 500, "erreur de la base de données");
-        return;
+        snprintf(message, taille, "erreur de la base de données");
+        return LANCEMENT_BASE;
     }
     if (ldsd_lire(scenario.script, &maison_exec, &programme, &err) != 0) {
-        snprintf(message, sizeof message, "erreur dans le scénario, ligne %d : %s",
+        snprintf(message, taille, "erreur dans le scénario, ligne %d : %s",
                  err.ligne, err.message);
-        http_reponse_erreur(rep, 409, message);
-        return;
+        return LANCEMENT_ERREUR_TEXTE;
     }
-    if (programme.en_tete.type != DECLENCHEUR_DIRECT) {
-        http_reponse_erreur(rep, 409, "scénario programmé : il se lance avec « Activer »");
-        return;
+    if (!par_planificateur && programme.en_tete.type != DECLENCHEUR_DIRECT) {
+        snprintf(message, taille, "scénario programmé : il se lance avec « Activer »");
+        return LANCEMENT_MAUVAIS_TYPE;
+    }
+    if (par_planificateur && programme.en_tete.type == DECLENCHEUR_DIRECT) {
+        snprintf(message, taille, "scénario direct : il se lance avec « Lancer »");
+        return LANCEMENT_MAUVAIS_TYPE;
     }
 
     /* 3. SimDom doit répondre */
     if (!simdom_est_connecte() && simdom_connecter() != 0) {
-        http_reponse_erreur(rep, 503, "maison non connectée");
-        return;
+        snprintf(message, taille, "maison non connectée");
+        return LANCEMENT_MAISON;
     }
 
-    /* 4. C'est parti : la boucle fera le travail (scenario_avancer) */
+    /* 4. C'est parti : la boucle fera le travail (execution_avancer) */
     en_cours = 1;
     id_en_cours = scenario.id;
     snprintf(nom_en_cours, sizeof nom_en_cours, "%s", scenario.nom);
     nb_commandes = nb_deja = nb_sautes = 0;
     clock_gettime(CLOCK_MONOTONIC, &debut);
     action_courante = 0;
-    printf(PREFIXE "« %s » lancé par l'utilisateur %lld (%d action(s))\n",
-           nom_en_cours, req->session->id_utilisateur, programme.nb_actions);
+    printf(PREFIXE "« %s » lancé par %s (%d action(s))\n",
+           nom_en_cours, qui, programme.nb_actions);
     preparer_action();
-
-    repondre_ok(rep, id);
-}
-
-void scenario_arreter(const Requete *req, Reponse *rep)
-{
-    long long id = lire_id(req);
-
-    if (id == 0) {
-        http_reponse_erreur(rep, 400, "corps JSON attendu : {\"id\":...}");
-        return;
-    }
-    if (!en_cours || id != id_en_cours) {
-        http_reponse_erreur(rep, 409, "ce scénario n'est pas en cours");
-        return;
-    }
-    printf(PREFIXE "arrêt demandé par l'utilisateur %lld\n", req->session->id_utilisateur);
-    terminer("arrêté");
-    repondre_ok(rep, id);
+    return LANCEMENT_OK;
 }

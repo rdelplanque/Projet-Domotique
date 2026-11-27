@@ -11,8 +11,7 @@
 #include "http/http_serveur.h"
 #include "auth/auth.h"
 #include "core/maison.h"
-#include "scenario/scenario.h"
-#include "scenario/execution.h"
+#include "scenario/service.h"     /* scenario_initialiser, scenario_avancer */
 #include "simdom/simdom.h"
 
 int main(int argc, char *argv[])
@@ -65,7 +64,8 @@ int main(int argc, char *argv[])
     printf("Serveur prêt. Ctrl+C pour l'arrêter.\n");
     fflush(stdout);
     /* Boucle du guichet, avec une « ronde » régulière : relire la maison, */
-    /* + le travail en cours : un scénario lancé avance par petites tranches */
+    /* + le travail de fond des scénarios : planificateur (heure des programmés,
+       file d'attente) et scénario en cours, par petites tranches */
     http_boucle(ecoute, cfg.intervalle_relecture_s, maison_ronde, scenario_avancer);  /* ne revient jamais */
 
     simdom_fermer();         /* jamais atteint pour l'instant */

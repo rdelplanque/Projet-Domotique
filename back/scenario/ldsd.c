@@ -681,7 +681,10 @@ static int est_marque(const Ligne *l, const char *mot)
            && !l->mots[1].guillemets && strcmp(l->mots[1].texte, ":") == 0;
 }
 
-int ldsd_lire(const char *texte, const Maison *m, Programme *p, ErreurLdsd *err)
+/* Lit le texte. seulement_en_tete = 1 : s'arrête dès que l'en-tête est lu
+   (la maison n'est alors pas utilisée, m peut valoir NULL). */
+static int lire_texte(const char *texte, const Maison *m, Programme *p, ErreurLdsd *err,
+                      int seulement_en_tete)
 {
     static Ligne l;             /* environ 4 Ko : hors de la pile */
     char brut[TAILLE_LIGNE];
@@ -741,6 +744,9 @@ int ldsd_lire(const char *texte, const Maison *m, Programme *p, ErreurLdsd *err)
             if (lire_en_tete(&l, &p->en_tete) != 0) {
                 return -1;
             }
+            if (seulement_en_tete) {
+                return 0;                   /* le reste ne nous intéresse pas */
+            }
             etape = ATTENTE_MARQUE_LISTE;
             break;
 
@@ -778,6 +784,23 @@ int ldsd_lire(const char *texte, const Maison *m, Programme *p, ErreurLdsd *err)
         }
         break;
     }
+    return 0;
+}
+
+
+int ldsd_lire(const char *texte, const Maison *m, Programme *p, ErreurLdsd *err)
+{
+    return lire_texte(texte, m, p, err, 0);
+}
+
+int ldsd_lire_en_tete(const char *texte, EnTete *e, ErreurLdsd *err)
+{
+    static Programme p;         /* environ 6 Ko : hors de la pile */
+
+    if (lire_texte(texte, NULL, &p, err, 1) != 0) {
+        return -1;
+    }
+    *e = p.en_tete;
     return 0;
 }
 

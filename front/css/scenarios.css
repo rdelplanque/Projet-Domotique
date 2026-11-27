@@ -45,6 +45,13 @@ a.bouton-commande {
     color: #5b6775;
 }
 
+/* Programmé : quand il part (« chaque samedi à 08:00 ») */
+.scenario-quand {
+    font-size: .85rem;
+    font-weight: 600;
+    color: #2b3a4a;
+}
+
 /* ---------- Étiquettes (type, utilisable, état) ---------- */
 .scenario-etiquettes {
     display: flex;

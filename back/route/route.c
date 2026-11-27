@@ -14,7 +14,6 @@
 #include "../auth/droits.h"     /* Droit, a_le_droit */
 #include "../core/maison.h"
 #include "../scenario/scenario.h"
-#include "../scenario/execution.h"
 
 
 /* ------------------------------------------------------------
@@ -67,9 +66,11 @@ static const Route ROUTES[] = {
     { "POST", "/api/scenarios/verifier", PROTEGEE, DROIT_SCENARIOS, scenario_verifier },
     { "POST", "/api/scenarios/creer",    PROTEGEE, DROIT_SCENARIOS, scenario_creer },
     { "POST", "/api/scenarios/modifier", PROTEGEE, DROIT_SCENARIOS, scenario_modifier },
-    { "POST", "/api/scenarios/lancer",   PROTEGEE, DROIT_SCENARIOS, scenario_lancer },   /* scenario/execution.c */
+    { "POST", "/api/scenarios/lancer",   PROTEGEE, DROIT_SCENARIOS, scenario_lancer },
     { "POST", "/api/scenarios/arreter",  PROTEGEE, DROIT_SCENARIOS, scenario_arreter },
+    { "POST", "/api/scenarios/actif",    PROTEGEE, DROIT_SCENARIOS, scenario_actif },
     { "POST", "/api/scenarios/utilisable", PROTEGEE, DROIT_SCENARIOS_ADMIN, scenario_utilisable },
+    { "POST", "/api/scenarios/supprimer",  PROTEGEE, DROIT_SCENARIOS_ADMIN, scenario_supprimer },
     { NULL, NULL, PUBLIQUE, DROIT_AUCUN, NULL }
 };
 

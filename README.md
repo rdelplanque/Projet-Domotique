@@ -68,13 +68,15 @@ puis le droit indiqué (sinon 403). Droits par profil : `back/auth/droits.c`.
 | `GET /api/moi` | connecté | profil et liste des droits |
 | `GET /api/maison` | consulter | étages, pièces, équipements (`?piece=23`, `&relire=1`) |
 | `POST /api/commande` | piloter | `{"id":57,"etat":1}` (+ `"mode"` pour une clim) |
-| `GET /api/scenarios` | scenarios | liste : type, utilisable, actif, en cours, texte |
+| `GET /api/scenarios` | scenarios | liste : type, quand (programmé), utilisable, actif, en cours, en attente, texte |
 | `POST /api/scenarios/verifier` | scenarios | `{"texte":"..."}` → ce que le serveur a compris, ou la 1ʳᵉ erreur et sa ligne |
 | `POST /api/scenarios/creer` | scenarios | `{"nom":"...","texte":"..."}` → `{"id":12}` ; refusé (409) si le texte a une erreur ou si le nom est pris |
 | `POST /api/scenarios/modifier` | scenarios | `{"id":12,"nom":"...","texte":"..."}` ; repasse non utilisable ; 409 si le scénario est en cours |
-| `POST /api/scenarios/lancer` | scenarios | `{"id":3}` lance un scénario direct (un seul à la fois) |
-| `POST /api/scenarios/arreter` | scenarios | `{"id":3}` arrête le scénario en cours |
+| `POST /api/scenarios/lancer` | scenarios | `{"id":3}` lance un scénario direct ; 409 si un scénario (direct ou programmé) tourne déjà |
+| `POST /api/scenarios/arreter` | scenarios | `{"id":3}` arrête le scénario en cours (direct ou programmé) |
+| `POST /api/scenarios/actif` | scenarios | `{"id":3,"actif":true}` active / désactive un programmé (utilisable, texte correct, « une fois » pas passé) |
 | `POST /api/scenarios/utilisable` | scenarios_admin | `{"id":3,"utilisable":true}` (refusé si le texte a une erreur) |
+| `POST /api/scenarios/supprimer` | scenarios_admin | `{"id":3}` ; 409 si le scénario est en cours |
 
 Tester à la main depuis la VM :
 ```bash
@@ -111,18 +113,28 @@ Cible : `"X" de "P" de "E"` (un équipement), ou un groupe : `tous les luminaire
 `toutes les climatisations`, `tous les volets`, suivi de `de "P" de "E"`, `de toutes les pièces de "E"`
 ou `de toutes les pièces de tous les étages`. Attention : « tous les volets » comprend les portes de garage.
 
-Code : `back/scenario/ldsd.c` (lecture et vérification), `execution.c` (exécution), `scenario.c` (routes).
+Code (`back/scenario/`) : `scenario.c` (routes : HTTP seulement), `service.c` (règles : peut-on
+modifier, supprimer, activer… ? + `scenario_initialiser` / `scenario_avancer` pour main),
+`planificateur.c` (programmés, file d'attente), `execution.c` (moteur, un scénario à la fois),
+`ldsd.c` (lecture et vérification du langage).
 - **Lecture** : à la première erreur, numéro de ligne + message (bouton « Vérifier » de la page).
 - **Exécution** : pas de thread, le scénario avance par tranches de ~0,25 s dans la boucle HTTP
   (les pages restent servies). Pour chaque équipement : relecture de l'état réel, panne ou absence
   de réponse = sauté, déjà dans l'état voulu = rien envoyé, sinon commande puis relecture.
   Toute la maison (123 luminaires) ≈ 20 s.
-- **Journal** du serveur : lignes `[scénario]` (lancement, chaque action, équipements sautés, bilan).
+- **Un seul scénario tourne à la fois.** Lancer un direct pendant un autre scénario : refusé (409).
+- **Programmés** : l'heure est regardée une fois par minute. Un programmé dont l'heure arrive pendant
+  un autre scénario entre dans une **file d'attente** et part dès que le moteur est libre. Un « une fois »
+  est désactivé dès qu'il entre dans la file. Désactivé, rendu non utilisable, modifié ou supprimé :
+  il sort de la file. Exécution manquée (serveur arrêté) : abandonnée ; au démarrage, un « une fois »
+  dont l'heure est passée est désactivé. Changement d'heure été / hiver : non traité.
+- **Journal** du serveur : lignes `[scénario]` (lancement, chaque action, équipements sautés, bilan)
+  et `[planificateur]` (mise en file, retrait, désactivation).
 - **Éditeur** (`front/pages/scenario.html`, `?id=12` pour modifier) : listes déroulantes
   étage → pièce → type → équipement → action (→ mode) qui écrivent la ligne à la fin du texte ;
   « Écrire l'en-tête » remplace la ligne qui suit `En-tête :`. Un texte faux n'est pas enregistré ;
   un scénario créé ou modifié est non utilisable jusqu'à la validation de l'administrateur.
-- Pas encore fait : Activer / Désactiver (programmés), Supprimer, `attendre`, conditions.
+- Pas de durée dans le langage (`attendre`, `pendant` : abandonnés). Pas encore fait : conditions.
 
 ## Services
 ```bash

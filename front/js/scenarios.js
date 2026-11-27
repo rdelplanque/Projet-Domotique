@@ -1,12 +1,12 @@
 /* ============================================================
    scenarios.js – Page « Scénarios » : la liste des scénarios
    Une carte par scénario, copiée du <template id="modele-scenario">.
-   Pour l'instant : afficher la liste et le texte d'un scénario,
-   le vérifier (le serveur le lit et dit ce qu'il a compris),
-   lancer et arrêter un scénario direct, le rendre (non) utilisable (admin),
-   ouvrir l'éditeur (Modifier → scenario.html?id=...).
-   La liste est relue toutes les 2 s (« En cours » → « Arrêté »).
-   Les autres boutons arriveront avec leurs routes (message « bientôt »).
+   Afficher le texte d'un scénario et le vérifier (le serveur le lit et
+   dit ce qu'il a compris) ; lancer / arrêter un direct ; activer /
+   désactiver un programmé ; arrêter un programmé en cours ; rendre
+   (non) utilisable et supprimer (admin) ; ouvrir l'éditeur
+   (Modifier → scenario.html?id=...).
+   La liste est relue toutes les 2 s (« En attente » → « En cours » → ...).
    Besoin de session.js (api) et commun.js (droits, pagePrete).
    ============================================================ */
 
@@ -20,10 +20,9 @@ const consoleVerif = document.querySelector(".fenetre-console");
 
 const INTERVALLE_MS = 2000;     /* relecture de la liste */
 
-const BIENTOT = "Cette action n'est pas encore disponible : elle arrive avec la suite du module scénarios.";
-
-/* Le scénario dont la fenêtre « Supprimer » est ouverte */
+/* Le scénario dont la fenêtre « Supprimer » est ouverte, et son bouton */
 let aSupprimer = null;
+let boutonSupprimer = null;
 
 /* Dernière liste reçue, en texte : on ne redessine que si elle a changé */
 let dernierTexte = "";
@@ -78,6 +77,10 @@ function carteScenario(s) {
 
     carte.querySelector(".scenario-nom").textContent = s.nom;
     carte.querySelector(".scenario-createur").textContent = "Créé par " + s.createur;
+    if (s.quand) {                              /* programmé : « chaque samedi à 08:00 » */
+        carte.querySelector(".scenario-quand").textContent = s.quand;
+        carte.querySelector(".scenario-quand").hidden = false;
+    }
 
     remplirEtiquette(carte.querySelector(".scenario-type"), texteType(s.type));
     remplirEtiquette(carte.querySelector(".scenario-utilisable"),
@@ -85,6 +88,8 @@ function carteScenario(s) {
                      s.utilisable ? "vert" : "orange");
     if (s.en_cours) {
         remplirEtiquette(carte.querySelector(".scenario-etat"), "En cours", "vert");
+    } else if (s.en_attente) {                  /* programmé : attend la fin d'un autre */
+        remplirEtiquette(carte.querySelector(".scenario-etat"), "En attente", "orange");
     } else if (s.actif) {
         remplirEtiquette(carte.querySelector(".scenario-etat"), "Actif", "vert");
     } else {
@@ -99,10 +104,12 @@ function carteScenario(s) {
         fenetreScript.showModal();
     });
 
-    /* Lancer / Arrêter (direct) ou Activer / Désactiver (programmé) :
-       seulement si le scénario est utilisable */
-    if (s.utilisable && s.type === "direct") {
-        bouton(s.en_cours ? "arreter" : "lancer").hidden = false;
+    /* Lancer (direct) ou Activer / Désactiver (programmé) : seulement
+       si le scénario est utilisable. Arrêter : tout scénario en cours. */
+    if (s.en_cours) {
+        bouton("arreter").hidden = false;
+    } else if (s.utilisable && s.type === "direct") {
+        bouton("lancer").hidden = false;
     }
     if (s.utilisable && s.type === "programme") {
         bouton(s.actif ? "desactiver" : "activer").hidden = false;
@@ -119,6 +126,7 @@ function carteScenario(s) {
         bouton("supprimer").hidden = false;
         bouton("supprimer").addEventListener("click", function () {
             aSupprimer = s;
+            boutonSupprimer = bouton("supprimer");
             fenetreSupprimer.querySelector(".fenetre-nom").textContent = s.nom;
             fenetreSupprimer.showModal();
         });
@@ -135,11 +143,12 @@ function carteScenario(s) {
         commander(bouton("arreter"), "/api/scenarios/arreter", { id: s.id });
     });
 
-    /* Pas encore de route côté serveur pour ces boutons */
-    ["activer", "desactiver"].forEach(function (action) {
-        bouton(action).addEventListener("click", function () {
-            montrerMessage(BIENTOT);
-        });
+    /* Activer / Désactiver : le planificateur s'en occupe */
+    bouton("activer").addEventListener("click", function () {
+        commander(bouton("activer"), "/api/scenarios/actif", { id: s.id, actif: true });
+    });
+    bouton("desactiver").addEventListener("click", function () {
+        commander(bouton("desactiver"), "/api/scenarios/actif", { id: s.id, actif: false });
     });
 
     return carte;
@@ -150,7 +159,7 @@ function carteScenario(s) {
    Échanges avec le serveur
    ------------------------------------------------------------ */
 
-/* Lancer, Arrêter, Rendre (non) utilisable : le corps (ex. {"id":3}) est
+/* Lancer, Arrêter, Activer, Désactiver, Rendre (non) utilisable, Supprimer : le corps (ex. {"id":3}) est
    envoyé à la route, puis la liste est relue.
    Refus (déjà un scénario en cours, erreur dans le texte...) : message du serveur. */
 async function commander(bouton, chemin, corps) {
@@ -234,9 +243,10 @@ pagePrete.then(function (ok) {
     /* Réponse de la fenêtre « Supprimer » : "oui" ou "non" (value du bouton) */
     fenetreSupprimer.addEventListener("close", function () {
         if (fenetreSupprimer.returnValue === "oui" && aSupprimer !== null) {
-            montrerMessage(BIENTOT);
+            commander(boutonSupprimer, "/api/scenarios/supprimer", { id: aSupprimer.id });
         }
         aSupprimer = null;
+        boutonSupprimer = null;
     });
 
     charger();

@@ -55,6 +55,17 @@ static const char *SQL_MODIFIER =
     "                  WHERE autre.nom_scenario = $2 AND autre.id_scenario <> $1)";
 
 
+/* $1 = id, $2 = actif ('true' / 'false').
+   (utilisable OR NOT $2) : on n'active jamais un scénario non utilisable. */
+static const char *SQL_ACTIF =
+    "UPDATE scenario SET actif = $2 "
+    "WHERE id_scenario = $1 AND (utilisable OR NOT $2)";
+
+/* $1 = id */
+static const char *SQL_SUPPRIMER =
+    "DELETE FROM scenario WHERE id_scenario = $1";
+
+
 /* Range la ligne i du résultat dans *s (colonnes dans l'ordre des SELECT) */
 static void remplir(const PGresult *res, int i, Scenario *s)
 {
@@ -207,4 +218,49 @@ int bdd_modifier_scenario(PGconn *conn, long long id, const char *nom, const cha
     modifie = (strcmp(PQcmdTuples(res), "1") == 0);
     PQclear(res);
     return modifie ? 0 : 1;
+}
+
+
+/* Exécute une requête de modification (UPDATE, DELETE) avec ses paramètres.
+   Renvoie 0 si une ligne a été touchée, 1 si aucune, -1 en cas d'erreur. */
+static int modifier_une_ligne(PGconn *conn, const char *sql, int nb, const char *const *params)
+{
+    PGresult *res;
+    int modifie;
+
+    if (!bdd_connexion_ok(conn)) {
+        fprintf(stderr, PREFIXE "base de données injoignable\n");
+        return -1;
+    }
+    res = PQexecParams(conn, sql, nb, NULL, params, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, PREFIXE "erreur SQL : %s", PQerrorMessage(conn));
+        PQclear(res);
+        return -1;
+    }
+    /* PQcmdTuples : nombre de lignes touchées, en texte ("1" ou "0") */
+    modifie = (strcmp(PQcmdTuples(res), "1") == 0);
+    PQclear(res);
+    return modifie ? 0 : 1;
+}
+
+int bdd_ecrire_actif(PGconn *conn, long long id, int actif)
+{
+    char id_texte[24];
+    const char *params[2];
+
+    snprintf(id_texte, sizeof id_texte, "%lld", id);
+    params[0] = id_texte;
+    params[1] = actif ? "true" : "false";
+    return modifier_une_ligne(conn, SQL_ACTIF, 2, params);
+}
+
+int bdd_supprimer_scenario(PGconn *conn, long long id)
+{
+    char id_texte[24];
+    const char *params[1];
+
+    snprintf(id_texte, sizeof id_texte, "%lld", id);
+    params[0] = id_texte;
+    return modifier_une_ligne(conn, SQL_SUPPRIMER, 1, params);
 }

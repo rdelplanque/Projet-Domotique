@@ -13,7 +13,7 @@
 /* Un scénario, tel que lu dans la base */
 typedef struct {
     long long id;
-    char      nom[100];                       /* nom_scenario (UNIQUE)      */
+    char      nom[101];                       /* nom_scenario (UNIQUE) : 100 octets + '\0' */
     char      createur[100];                  /* « Prénom Nom » du créateur */
     char      script[SCENARIO_TAILLE_TEXTE];  /* le texte LDSD              */
     int       utilisable;                     /* 1 / 0                      */
@@ -50,5 +50,15 @@ int bdd_creer_scenario(PGconn *conn, const char *nom, const char *texte,
    Renvoie 0 si fait, 1 si aucun scénario n'a été modifié (id inconnu,
    ou nom déjà pris par un AUTRE scénario), -1 en cas d'erreur de la base. */
 int bdd_modifier_scenario(PGconn *conn, long long id, const char *nom, const char *texte);
+
+/* Active (1) ou désactive (0) un scénario programmé. On n'active
+   qu'un scénario utilisable (contrôlé aussi dans la requête SQL).
+   Renvoie 0 si fait, 1 si aucun scénario modifié (id inconnu, ou
+   activation d'un scénario non utilisable), -1 en cas d'erreur de la base. */
+int bdd_ecrire_actif(PGconn *conn, long long id, int actif);
+
+/* Supprime le scénario id.
+   Renvoie 0 si fait, 1 s'il n'existe pas, -1 en cas d'erreur de la base. */
+int bdd_supprimer_scenario(PGconn *conn, long long id);
 
 #endif /* BDD_SCENARIO_H */

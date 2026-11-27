@@ -1,88 +1,111 @@
 /* ============================================================
-   scenario.c – Les scénarios (voir scenario.h)
+   scenario.c – Les routes /api/scenarios/... (voir scenario.h)
+
+   Ici, seulement le HTTP : lire le JSON reçu, appeler le service
+   (les règles, service.c), traduire son Resultat en réponse.
    ============================================================ */
 
 #include <stdio.h>          /* snprintf                */
-#include <string.h>         /* strstr, strncmp, strspn, strlen */
+#include <string.h>         /* strlen, memcpy          */
 #include <ctype.h>          /* isspace, iscntrl        */
 #include <cjson/cJSON.h>
 
 #include "scenario.h"
-#include "../bdd/bdd_scenario.h"
-#include "../bdd/bdd_maison.h"
+#include "service.h"
 #include "ldsd.h"
 #include "execution.h"
+#include "planificateur.h"
+#include "../bdd/bdd_scenario.h"
+#include "../bdd/bdd_maison.h"
 #include "../auth/session.h"
 
-#define MARQUE_EN_TETE "En-tête :"
-#define EN_TETE_DIRECT "au clic"
+#define NOM_TAILLE_MAX 100      /* nom_scenario varchar(100) */
 
-/* La connexion à la base, donnée une fois par main */
+/* La connexion à la base (lister, vérifier) */
 static PGconn *connexion = NULL;
 
 /* La liste lue dans la base : environ 530 Ko, trop gros pour la pile
    d'une fonction (même raison que « maison » dans maison.c). */
 static ListeScenarios liste;
 
-/* La maison, pour retrouver les noms écrits dans les scénarios,
-   et le scénario lu (mêmes raisons de taille : hors de la pile). */
+/* La maison et le scénario lu, pour « Vérifier » (hors de la pile) */
 static Maison    maison_lue;
 static Programme programme;
-static Scenario  un_scenario;
 
 /* Le texte reçu de l'éditeur (8 Ko : hors de la pile, lui aussi) */
 static char texte_recu[SCENARIO_TAILLE_TEXTE];
 
-#define NOM_TAILLE_MAX 100      /* nom_scenario varchar(100) */
 
-
-void scenario_initialiser(PGconn *conn)
+void scenario_routes_initialiser(PGconn *conn)
 {
     connexion = conn;
-    execution_initialiser(conn);
 }
 
 
-TypeScenario scenario_type(const char *script)
+/* ------------------------------------------------------------
+   Petits outils
+   ------------------------------------------------------------ */
+
+/* Traduit le résultat du service en réponse HTTP.
+   OK : {"ok":true,"id":3} ; sinon {"erreur":"...","ligne":4} (ligne si texte faux). */
+static void repondre(Reponse *rep, const Resultat *r, long long id)
 {
-    const char *p = strstr(script, MARQUE_EN_TETE);
-    size_t n;
+    static const int CODES[] = {
+        [ISSUE_OK] = 200, [ISSUE_INCONNU] = 404, [ISSUE_REFUS] = 409,
+        [ISSUE_BASE] = 500, [ISSUE_MAISON] = 503
+    };
+    cJSON *objet;
+    char json[64];
 
-    if (p == NULL) {
-        return SCENARIO_INCONNU;
+    if (r->issue == ISSUE_OK) {
+        snprintf(json, sizeof json, "{\"ok\":true,\"id\":%lld}", id);
+        http_reponse_json(rep, 200, json);
+        return;
     }
-    p += strlen(MARQUE_EN_TETE);
-
-    /* Sauter la fin de la ligne « En-tête : », puis les lignes vides
-       et les espaces (\r compris : texte tapé sous Windows) */
-    p += strspn(p, " \t\r\n");
-    if (*p == '\0') {
-        return SCENARIO_INCONNU;
+    if (r->ligne == 0) {
+        http_reponse_erreur(rep, CODES[r->issue], r->message);
+        return;
     }
+    /* Texte faux : le numéro de ligne est aussi envoyé à part (pour la page) */
+    objet = cJSON_CreateObject();
+    cJSON_AddStringToObject(objet, "erreur", r->message);
+    cJSON_AddNumberToObject(objet, "ligne", r->ligne);
+    http_reponse_liberer(rep);
+    rep->code = CODES[r->issue];
+    rep->json = cJSON_PrintUnformatted(objet);  /* NULL si mémoire pleine → 500 */
+    cJSON_Delete(objet);
+}
 
-    /* « au clic » doit être seul sur sa ligne (espaces de fin tolérés) */
-    n = strlen(EN_TETE_DIRECT);
-    if (strncmp(p, EN_TETE_DIRECT, n) == 0) {
-        p += n;
-        p += strspn(p, " \t\r");
-        if (*p == '\n' || *p == '\0') {
-            return SCENARIO_DIRECT;
+/* Lit {"id":3} dans le corps, et le booléen nommé choix s'il est demandé
+   (choix = NULL : pas de booléen). Renvoie l'id, ou 0 si le corps est invalide. */
+static long long lire_id(const Requete *req, const char *choix, int *valeur)
+{
+    cJSON *corps;
+    const cJSON *id;
+    const cJSON *b;
+    long long resultat = 0;
+
+    corps = (req->corps != NULL) ? cJSON_Parse(req->corps) : NULL;
+    id = cJSON_GetObjectItemCaseSensitive(corps, "id");
+    if (cJSON_IsNumber(id) && id->valuedouble >= 1) {
+        resultat = (long long)id->valuedouble;
+    }
+    if (choix != NULL) {
+        b = cJSON_GetObjectItemCaseSensitive(corps, choix);
+        if (cJSON_IsBool(b)) {
+            *valeur = cJSON_IsTrue(b);
+        } else {
+            resultat = 0;
         }
     }
-    return SCENARIO_PROGRAMME;
+    cJSON_Delete(corps);
+    return resultat;
 }
 
 
-/* Le type en texte pour le navigateur */
-static const char *nom_type(TypeScenario t)
-{
-    switch (t) {
-    case SCENARIO_DIRECT:    return "direct";
-    case SCENARIO_PROGRAMME: return "programme";
-    default:                 return "inconnu";
-    }
-}
-
+/* ------------------------------------------------------------
+   Lire : la liste, vérifier un texte
+   ------------------------------------------------------------ */
 
 /* GET /api/scenarios */
 void scenario_lister(const Requete *req, Reponse *rep)
@@ -90,6 +113,10 @@ void scenario_lister(const Requete *req, Reponse *rep)
     cJSON *objet;
     cJSON *tableau;
     cJSON *ligne;
+    EnTete e;
+    ErreurLdsd err;
+    char quand[128];
+    const char *type;
     int i;
 
     (void)req;      /* tous les profils autorisés voient tous les scénarios */
@@ -106,14 +133,27 @@ void scenario_lister(const Requete *req, Reponse *rep)
     for (i = 0; i < liste.nb; i++) {
         const Scenario *s = &liste.scenarios[i];
 
+        /* Le type et le « quand », d'après l'en-tête (lu par ldsd) */
+        quand[0] = '\0';
+        if (ldsd_lire_en_tete(s->script, &e, &err) != 0) {
+            type = "inconnu";
+        } else if (e.type == DECLENCHEUR_DIRECT) {
+            type = "direct";
+        } else {
+            type = "programme";
+            ldsd_decrire_en_tete(&e, quand, sizeof quand);
+        }
+
         ligne = cJSON_CreateObject();
         cJSON_AddNumberToObject(ligne, "id", (double)s->id);
         cJSON_AddStringToObject(ligne, "nom", s->nom);
         cJSON_AddStringToObject(ligne, "createur", s->createur);
-        cJSON_AddStringToObject(ligne, "type", nom_type(scenario_type(s->script)));
+        cJSON_AddStringToObject(ligne, "type", type);
+        cJSON_AddStringToObject(ligne, "quand", quand);
         cJSON_AddBoolToObject(ligne, "utilisable", s->utilisable);
         cJSON_AddBoolToObject(ligne, "actif", s->actif);
-        cJSON_AddBoolToObject(ligne, "en_cours", s->id == scenario_en_cours());
+        cJSON_AddBoolToObject(ligne, "en_cours", s->id == execution_en_cours());
+        cJSON_AddBoolToObject(ligne, "en_attente", planificateur_en_attente(s->id));
         cJSON_AddStringToObject(ligne, "script", s->script);
         cJSON_AddItemToArray(tableau, ligne);
     }
@@ -184,69 +224,6 @@ void scenario_verifier(const Requete *req, Reponse *rep)
     cJSON_Delete(objet);
 }
 
-
-/* POST /api/scenarios/utilisable */
-void scenario_utilisable(const Requete *req, Reponse *rep)
-{
-    cJSON *corps;
-    const cJSON *id_json;
-    const cJSON *choix;
-    long long id;
-    int utilisable;
-    int trouve;
-    ErreurLdsd err;
-    char texte[LDSD_TAILLE_MESSAGE + 64];
-
-    /* 1. Le corps : {"id":3,"utilisable":true} */
-    corps = (req->corps != NULL) ? cJSON_Parse(req->corps) : NULL;
-    id_json = cJSON_GetObjectItemCaseSensitive(corps, "id");
-    choix = cJSON_GetObjectItemCaseSensitive(corps, "utilisable");
-    if (!cJSON_IsNumber(id_json) || id_json->valuedouble < 1 || !cJSON_IsBool(choix)) {
-        cJSON_Delete(corps);
-        http_reponse_erreur(rep, 400, "corps JSON attendu : {\"id\":...,\"utilisable\":true|false}");
-        return;
-    }
-    id = (long long)id_json->valuedouble;
-    utilisable = cJSON_IsTrue(choix);
-    cJSON_Delete(corps);
-
-    /* 2. Rendre utilisable : seulement un texte correct */
-    if (utilisable) {
-        trouve = bdd_lire_scenario(connexion, id, &un_scenario);
-        if (trouve != 0) {
-            http_reponse_erreur(rep, trouve < 0 ? 500 : 404,
-                                trouve < 0 ? "erreur de la base de données" : "scénario inconnu");
-            return;
-        }
-        if (bdd_lire_maison(connexion, 0, &maison_lue) != 0) {
-            http_reponse_erreur(rep, 500, "erreur de la base de données");
-            return;
-        }
-        if (ldsd_lire(un_scenario.script, &maison_lue, &programme, &err) != 0) {
-            snprintf(texte, sizeof texte, "erreur dans le scénario, ligne %d : %s",
-                     err.ligne, err.message);
-            http_reponse_erreur(rep, 409, texte);
-            return;
-        }
-    } else {
-        /* 3. Non utilisable : il ne doit plus tourner */
-        execution_arreter_si(id, "arrêté (rendu non utilisable)");
-    }
-
-    /* 4. Enregistrer */
-    trouve = bdd_ecrire_utilisable(connexion, id, utilisable);
-    if (trouve != 0) {
-        http_reponse_erreur(rep, trouve < 0 ? 500 : 404,
-                            trouve < 0 ? "erreur de la base de données" : "scénario inconnu");
-        return;
-    }
-    printf("[scénario] n° %lld rendu %s par l'utilisateur %lld\n", id,
-           utilisable ? "utilisable" : "non utilisable", req->session->id_utilisateur);
-
-    snprintf(texte, sizeof texte, "{\"ok\":true,\"id\":%lld,\"utilisable\":%s}",
-             id, utilisable ? "true" : "false");
-    http_reponse_json(rep, 200, texte);
-}
 
 
 /* ------------------------------------------------------------
@@ -326,113 +303,101 @@ static int lire_formulaire(const Requete *req, Reponse *rep, int avec_id,
     return 0;
 }
 
-/* Le texte reçu est-il correct ? (choix : on n'enregistre pas un texte faux)
-   Renvoie 0 si oui ; sinon -1 et la réponse est remplie :
-     409 {"erreur":"ligne 4 : ...","ligne":4}   texte faux
-     500                                         base inaccessible */
-static int texte_correct(Reponse *rep)
-{
-    ErreurLdsd err;
-    cJSON *objet;
-    char texte[LDSD_TAILLE_MESSAGE + 32];
-
-    if (bdd_lire_maison(connexion, 0, &maison_lue) != 0) {
-        http_reponse_erreur(rep, 500, "erreur de la base de données");
-        return -1;
-    }
-    if (ldsd_lire(texte_recu, &maison_lue, &programme, &err) == 0) {
-        return 0;
-    }
-
-    /* Le numéro de ligne est aussi envoyé à part : la page peut s'en servir */
-    snprintf(texte, sizeof texte, "ligne %d : %s", err.ligne, err.message);
-    objet = cJSON_CreateObject();
-    cJSON_AddStringToObject(objet, "erreur", texte);
-    cJSON_AddNumberToObject(objet, "ligne", err.ligne);
-    http_reponse_liberer(rep);
-    rep->code = 409;
-    rep->json = cJSON_PrintUnformatted(objet);
-    cJSON_Delete(objet);
-    return -1;
-}
-
 
 /* POST /api/scenarios/creer */
 void scenario_creer(const Requete *req, Reponse *rep)
 {
     char nom[NOM_TAILLE_MAX + 1];
-    char texte[64];
     long long id = 0;
-    int resultat;
+    Resultat r;
 
-    if (lire_formulaire(req, rep, 0, NULL, nom) != 0
-        || texte_correct(rep) != 0) {
-        return;                                 /* réponse d'erreur déjà prête */
+    if (lire_formulaire(req, rep, 0, NULL, nom) != 0) {
+        return;                                 /* réponse 400 déjà prête */
     }
-
     /* Le créateur est celui qui est connecté : lu dans sa session,
        jamais envoyé par la page (modifiable avec F12). */
-    resultat = bdd_creer_scenario(connexion, nom, texte_recu,
-                                  req->session->id_utilisateur, &id);
-    if (resultat < 0) {
-        http_reponse_erreur(rep, 500, "erreur de la base de données");
-        return;
-    }
-    if (resultat == 1) {
-        http_reponse_erreur(rep, 409, "ce nom est déjà pris par un autre scénario");
-        return;
-    }
-    printf("[scénario] n° %lld « %s » créé par l'utilisateur %lld\n",
-           id, nom, req->session->id_utilisateur);
-
-    snprintf(texte, sizeof texte, "{\"ok\":true,\"id\":%lld}", id);
-    http_reponse_json(rep, 200, texte);
+    service_creer(nom, texte_recu, req->session->id_utilisateur, &id, &r);
+    repondre(rep, &r, id);
 }
-
 
 /* POST /api/scenarios/modifier */
 void scenario_modifier(const Requete *req, Reponse *rep)
 {
     char nom[NOM_TAILLE_MAX + 1];
-    char texte[64];
     long long id = 0;
-    int resultat;
+    Resultat r;
 
     if (lire_formulaire(req, rep, 1, &id, nom) != 0) {
         return;
     }
+    service_modifier(id, nom, texte_recu, req->session->id_utilisateur, &r);
+    repondre(rep, &r, id);
+}
 
-    /* 1. Le scénario existe-t-il ? */
-    resultat = bdd_lire_scenario(connexion, id, &un_scenario);
-    if (resultat != 0) {
-        http_reponse_erreur(rep, resultat < 0 ? 500 : 404,
-                            resultat < 0 ? "erreur de la base de données" : "scénario inconnu");
-        return;
-    }
 
-    /* 2. Choix A : pas de modification pendant qu'il tourne */
-    if (scenario_en_cours() == id) {
-        http_reponse_erreur(rep, 409, "scénario en cours : arrêtez-le avant de le modifier");
-        return;
-    }
+/* ------------------------------------------------------------
+   Les boutons des cartes : {"id":3} (+ un booléen)
+   ------------------------------------------------------------ */
 
-    /* 3. Le texte, puis l'enregistrement */
-    if (texte_correct(rep) != 0) {
-        return;
-    }
-    resultat = bdd_modifier_scenario(connexion, id, nom, texte_recu);
-    if (resultat < 0) {
-        http_reponse_erreur(rep, 500, "erreur de la base de données");
-        return;
-    }
-    if (resultat == 1) {
-        /* Il existe (étape 1) : c'est donc le nom qui est pris */
-        http_reponse_erreur(rep, 409, "ce nom est déjà pris par un autre scénario");
-        return;
-    }
-    printf("[scénario] n° %lld « %s » modifié par l'utilisateur %lld (repasse non utilisable)\n",
-           id, nom, req->session->id_utilisateur);
+/* POST /api/scenarios/utilisable   {"id":3,"utilisable":true} */
+void scenario_utilisable(const Requete *req, Reponse *rep)
+{
+    int utilisable = 0;
+    long long id = lire_id(req, "utilisable", &utilisable);
+    Resultat r;
 
-    snprintf(texte, sizeof texte, "{\"ok\":true,\"id\":%lld}", id);
-    http_reponse_json(rep, 200, texte);
+    if (id == 0) {
+        http_reponse_erreur(rep, 400, "corps JSON attendu : {\"id\":...,\"utilisable\":true|false}");
+        return;
+    }
+    service_utilisable(id, utilisable, req->session->id_utilisateur, &r);
+    repondre(rep, &r, id);
+}
+
+/* POST /api/scenarios/actif   {"id":3,"actif":true} */
+void scenario_actif(const Requete *req, Reponse *rep)
+{
+    int actif = 0;
+    long long id = lire_id(req, "actif", &actif);
+    Resultat r;
+
+    if (id == 0) {
+        http_reponse_erreur(rep, 400, "corps JSON attendu : {\"id\":...,\"actif\":true|false}");
+        return;
+    }
+    service_activer(id, actif, req->session->id_utilisateur, &r);
+    repondre(rep, &r, id);
+}
+
+/* Les routes qui ne reçoivent que {"id":3} */
+static void route_id(const Requete *req, Reponse *rep,
+                     void (*service)(long long id, long long qui, Resultat *r))
+{
+    long long id = lire_id(req, NULL, NULL);
+    Resultat r;
+
+    if (id == 0) {
+        http_reponse_erreur(rep, 400, "corps JSON attendu : {\"id\":...}");
+        return;
+    }
+    service(id, req->session->id_utilisateur, &r);
+    repondre(rep, &r, id);
+}
+
+/* POST /api/scenarios/lancer     {"id":3} */
+void scenario_lancer(const Requete *req, Reponse *rep)
+{
+    route_id(req, rep, service_lancer);
+}
+
+/* POST /api/scenarios/arreter    {"id":3} */
+void scenario_arreter(const Requete *req, Reponse *rep)
+{
+    route_id(req, rep, service_arreter);
+}
+
+/* POST /api/scenarios/supprimer  {"id":3} */
+void scenario_supprimer(const Requete *req, Reponse *rep)
+{
+    route_id(req, rep, service_supprimer);
 }
